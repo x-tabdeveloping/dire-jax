@@ -14,6 +14,7 @@ from fastdtw import fastdtw
 from pytwed import twed
 import plotly.express as px
 import pandas as pd
+from persim import wasserstein, bottleneck
 
 #
 # Auxiliary functions
