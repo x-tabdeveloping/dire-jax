@@ -1,0 +1,13 @@
+jax[cuda12]
+faiss-gpu
+numpy
+scipy
+tqdm
+pandas
+plotly
+kaleido
+loguru
+ripser
+fastdtw
+pytwed
+pot

@@ -1,0 +1,13 @@
+jax
+faiss-cpu
+numpy
+scipy
+tqdm
+pandas
+plotly
+kaleido
+loguru
+ripser
+fastdtw
+pytwed
+pot
