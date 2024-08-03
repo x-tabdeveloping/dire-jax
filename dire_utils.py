@@ -4,6 +4,7 @@
 # Imports
 #
 import time
+from numpy import nonzero
 import pandas as pd
 import plotly.express as px
 from hpmetrics import *
@@ -78,7 +79,7 @@ def run_benchmark(reducer, features, labels, subsample_threshold=0.1, rng_key=ra
     print(f'Embedding time: {embedding_time:.4f} seconds')
 
     display_layout(embedding, 
-                   labels=labels.astype('str') if labels else None, 
+                   labels=labels.astype('str') if labels is not None else None, 
                    point_size=point_size).show()
     
     do_persistence_analysis(features,
