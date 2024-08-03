@@ -12,9 +12,9 @@ import ot
 from ripser import ripser
 from fastdtw import fastdtw
 from pytwed import twed
+from persim import wasserstein, bottleneck
 import plotly.express as px
 import pandas as pd
-from persim import wasserstein, bottleneck
 
 #
 # Auxiliary functions
@@ -359,9 +359,11 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
     return None
 
 #
-# Computing the persistence metrics (DTW, TWED, EMD for Betti curves)
+# Computing global metrics:
+# DTW, TWED, EMD for Betti curves;
+# 
 #
-def compute_persistence_metrics(data, layout, dimension, subsample_threshold, rng_key, n_steps=100):
+def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key, n_steps=100):
     """
     Computes and compares persistence metrics between high-dimensional and low-dimensional data representations.
     The function calculates the Dynamic Time Warp (DTW), Time Warp Edit Distance (TWED), and Earth Mover Distance
@@ -380,7 +382,7 @@ def compute_persistence_metrics(data, layout, dimension, subsample_threshold, rn
     dict: A dictionary containing lists of computed distances for each of the three metrics (DTW, TWED, and EMD).
           Each list corresponds to a dimension in which the distances were computed.
     """
-    metrics = {'dtw': [], 'twed': [], 'emd': []}
+    metrics = {'dtw': [], 'twed': [], 'emd': [], 'wass': [], 'bot': []}
     data_hd, data_ld = threshold_subsample(data, layout, subsample_threshold, rng_key)
     n_points = data_hd.shape[0]
     assert n_points == data_ld.shape[0]
@@ -390,23 +392,31 @@ def compute_persistence_metrics(data, layout, dimension, subsample_threshold, rn
     for diag_hd, diag_ld in zip(diags['data'], diags['layout']):
         axis_x_hd, axis_y_hd = betti_curve(diag_hd, n_steps=n_steps)
         axis_x_ld, axis_y_ld = betti_curve(diag_ld, n_steps=n_steps)
-        # Computing DTW distance
+        # Computing DTW distance (normalized)
         seq0 = np.array(list(zip(axis_x_hd, axis_y_hd)))
         seq1 = np.array(list(zip(axis_x_ld, axis_y_ld)))
         dist_dtw, path = fastdtw(seq0, seq1, dist=2)
         dist_dtw /= n_points
-        # Computing TWED distance
+        # Computing TWED distance (normalized)
         dist_twed = twed(axis_y_hd, axis_y_ld, axis_x_hd, axis_x_ld, p=2, fast=True)
         dist_twed /= n_points
-        # Computing EMD distance
+        # Computing EMD distance (normalized)
         sum_hd = np.sum(axis_y_hd)
         sum_ld = np.sum(axis_y_ld)
         axis_y_hd_ = axis_y_hd / sum_hd
         axis_y_ld_ = axis_y_ld / sum_ld
         dist_emd = ot.emd2_1d(axis_x_hd, axis_x_ld, axis_y_hd_, axis_y_ld_, metric='sqeuclidean')
         dist_emd = dist_emd / n_points * np.max([sum_hd / sum_ld, sum_ld / sum_hd])
+        # Computing Wasserstein distance (normalized)
+        dist_wass = wasserstein(diag_hd, diag_ld)
+        dist_wass /= n_points
+        # Computing bottleneck distance (without normalization)
+        dist_bot = bottleneck(diag_hd, diag_ld)
+        # Adding metrics to dictionary 
         metrics['dtw'].append(dist_dtw)
         metrics['twed'].append(dist_twed)
         metrics['emd'].append(dist_emd)
+        metrics['wass'].append(dist_wass)
+        metrics['bot'].append(dist_bot)
 
     return metrics
