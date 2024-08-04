@@ -11,7 +11,7 @@ import gc
 import ot
 from ripser import ripser
 from fastdtw import fastdtw
-from pytwed import twed
+#from pytwed import twed
 from persim import wasserstein, bottleneck
 import plotly.express as px
 import pandas as pd
@@ -405,8 +405,8 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
         dist_dtw, path = fastdtw(seq0, seq1, dist=2)
         dist_dtw /= n_points
         # Computing TWED distance (normalized)
-        dist_twed = twed(axis_y_hd, axis_y_ld, axis_x_hd, axis_x_ld, p=2, fast=True)
-        dist_twed /= n_points
+        #dist_twed = twed(axis_y_hd, axis_y_ld, axis_x_hd, axis_x_ld, p=2, fast=True)
+        #dist_twed /= n_points
         # Computing EMD distance (normalized)
         sum_hd = np.sum(axis_y_hd)
         sum_ld = np.sum(axis_y_ld)
@@ -421,7 +421,7 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
         dist_bot = bottleneck(diag_hd, diag_ld)
         # Adding metrics to dictionary 
         metrics['dtw'].append(dist_dtw)
-        metrics['twed'].append(dist_twed)
+        #metrics['twed'].append(dist_twed)
         metrics['emd'].append(dist_emd)
         metrics['wass'].append(dist_wass)
         metrics['bot'].append(dist_bot)
