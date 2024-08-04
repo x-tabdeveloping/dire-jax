@@ -15,7 +15,7 @@ from fastdtw import fastdtw
 from persim import wasserstein, bottleneck
 import plotly.express as px
 import pandas as pd
-from utils import make_knn_adjacency
+from utils import make_knn_adjacency, timing
 
 #
 # Auxiliary functions
@@ -197,6 +197,13 @@ def compute_neighbor_score(data, layout, n_neighbors):
     neighbor_mean, neighbor_std = welford(preservation_scores.ravel())
 
     return neighbor_mean.item(), neighbor_std.item()
+
+def compute_local_metrics(data, layout, n_neighbors)
+    stress_normalized = compute_stress(data, layout, n_neighbors)
+    neighbor_score, _ = compute_neighbor_score(data, layout, n_neighbors)
+    ldict = {"stress": stress_normalized, 'neighbor' : neighbor_score}
+    return ldict
+
 
 #
 # Global metrics based on persistence (co)homology
@@ -427,3 +434,14 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold=1.0, rng
         metrics['bot'].append(dist_bot)
 
     return metrics
+
+def do_metrics(reducer, data, n_neighbors = 100, **kwargs):
+    mdict = {}
+    with timing('timing', mdict):
+        layout = reducer.fit_transform(data)
+    ldict = compute_local_metrics(data, layout, n_neighbors)
+    mdict.update(ldict)
+    gdict = compute_global_metrics(data, layout, 1.0)
+    mdict.update(gdict)
+    return mdict
+    

@@ -32,3 +32,13 @@ def make_knn_adjacency(data, n_neighbors):
         #
     return adj_mat
 
+
+import time
+from contextlib import contextmanager
+
+@contextmanager
+def timing(block_name, dict):
+    start_time = time.time()
+    yield
+    end_time = time.time()
+    dict[block_name] = end_time - start_time
