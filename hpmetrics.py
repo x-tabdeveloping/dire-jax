@@ -15,6 +15,7 @@ from pytwed import twed
 from persim import wasserstein, bottleneck
 import plotly.express as px
 import pandas as pd
+from utils import make_knn_adjacency
 
 #
 # Auxiliary functions
@@ -204,7 +205,7 @@ def compute_neighbor_score(data, layout, n_neighbors):
 #
 # Bernoulli trial subsampling
 #
-def threshold_subsample(data_hd, data_ld, threshold, rng_key):
+def threshold_subsample(data_hd, data_ld, threshold=1.0, rng_key=42):
     """
     Subsample high-dimensional and corresponding low-dimensional data based on a specified threshold.
     The function generates random numbers and selects the samples where the random number is less than the threshold.
@@ -227,7 +228,7 @@ def threshold_subsample(data_hd, data_ld, threshold, rng_key):
 #
 # Producing diagrams in dimensions up to dim (inclusive) for data and layout
 #
-def diagrams(data, layout, max_dim, subsample_threshold, rng_key):
+def diagrams(data, layout, max_dim, subsample_threshold, do_knn = 100, rng_key=42):
     """
     Generates persistence diagrams for high-dimensional and low-dimensional data up to a specified dimension,
     after subsampling both datasets based on a threshold. The subsampling is performed to reduce the dataset size
@@ -245,8 +246,14 @@ def diagrams(data, layout, max_dim, subsample_threshold, rng_key):
           for the respective high-dimensional and low-dimensional datasets.
     """
     data_hd, data_ld = threshold_subsample(data, layout, subsample_threshold, rng_key)
-    diags_hd = ripser(data_hd, maxdim=max_dim)['dgms']
-    diags_ld = ripser(data_ld, maxdim=max_dim)['dgms']
+    if do_knn is not None:
+        adj_hd = make_knn_adjacency(data_hd, n_neighbors=do_knn)
+        adj_ld = make_knn_adjacency(data_ld, n_neighbors=do_knn)
+        diags_hd = ripser(adj_hd, distance_matrix = True)
+        diags_ld = ripser(adj_ld, distance_matrix = True)
+    else:
+        diags_hd = ripser(data_hd, maxdim=max_dim)['dgms']
+        diags_ld = ripser(data_ld, maxdim=max_dim)['dgms']
     return {'data': diags_hd, 'layout': diags_ld}
 
 #
