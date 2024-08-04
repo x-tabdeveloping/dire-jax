@@ -370,7 +370,7 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
 # DTW, TWED, EMD for Betti curves;
 # 
 #
-def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key, n_steps=100, resolution = 100, do_knn = 100):
+def compute_global_metrics(data, layout, dimension, subsample_threshold=1.0, rng_key=42, n_steps=100, resolution = 100, do_knn = 100):
     """
     Computes and compares persistence metrics between high-dimensional and low-dimensional data representations.
     The function calculates the Dynamic Time Warp (DTW), Time Warp Edit Distance (TWED), and Earth Mover Distance
@@ -389,7 +389,7 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
     dict: A dictionary containing lists of computed distances for each of the three metrics (DTW, TWED, and EMD).
           Each list corresponds to a dimension in which the distances were computed.
     """
-    metrics = {'dtw': [], 'twed': [], 'emd': [], 'wass': [], 'bot': []}
+    metrics = {'dtw': [], 'emd': [], 'wass': [], 'bot': []}
     data_hd, data_ld = threshold_subsample(data, layout, subsample_threshold, rng_key)
     n_points = data_hd.shape[0]
     assert n_points == data_ld.shape[0]
