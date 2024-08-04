@@ -228,7 +228,7 @@ def threshold_subsample(data_hd, data_ld, threshold=1.0, rng_key=42):
 #
 # Producing diagrams in dimensions up to dim (inclusive) for data and layout
 #
-def diagrams(data, layout, max_dim, subsample_threshold, do_knn = 100, rng_key=42):
+def diagrams(data, layout, max_dim, subsample_threshold, do_knn = 100, rng_key=42, resolution = 100):
     """
     Generates persistence diagrams for high-dimensional and low-dimensional data up to a specified dimension,
     after subsampling both datasets based on a threshold. The subsampling is performed to reduce the dataset size
@@ -249,11 +249,11 @@ def diagrams(data, layout, max_dim, subsample_threshold, do_knn = 100, rng_key=4
     if do_knn is not None:
         adj_hd = make_knn_adjacency(data_hd, n_neighbors=do_knn)
         adj_ld = make_knn_adjacency(data_ld, n_neighbors=do_knn)
-        diags_hd = ripser(adj_hd, distance_matrix = True)
-        diags_ld = ripser(adj_ld, distance_matrix = True)
+        diags_hd = ripser(adj_hd, distance_matrix = True, resolution = resolution)['dgms']
+        diags_ld = ripser(adj_ld, distance_matrix = True, resolution = resolution)['dgms']
     else:
-        diags_hd = ripser(data_hd, maxdim=max_dim)['dgms']
-        diags_ld = ripser(data_ld, maxdim=max_dim)['dgms']
+        diags_hd = ripser(data_hd, maxdim=max_dim, resolution = resolution)['dgms']
+        diags_ld = ripser(data_ld, maxdim=max_dim, resolution = resolution)['dgms']
     return {'data': diags_hd, 'layout': diags_ld}
 
 #
@@ -370,7 +370,7 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
 # DTW, TWED, EMD for Betti curves;
 # 
 #
-def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key, n_steps=100):
+def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key, n_steps=100, resolution = 100, do_knn = 100):
     """
     Computes and compares persistence metrics between high-dimensional and low-dimensional data representations.
     The function calculates the Dynamic Time Warp (DTW), Time Warp Edit Distance (TWED), and Earth Mover Distance
@@ -394,7 +394,7 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
     n_points = data_hd.shape[0]
     assert n_points == data_ld.shape[0]
 
-    diags = diagrams(data_hd, data_ld, dimension, subsample_threshold, rng_key)
+    diags = diagrams(data_hd, data_ld, dimension, subsample_threshold, do_knn, rng_key, resolution)
 
     for diag_hd, diag_ld in zip(diags['data'], diags['layout']):
         axis_x_hd, axis_y_hd = betti_curve(diag_hd, n_steps=n_steps)
