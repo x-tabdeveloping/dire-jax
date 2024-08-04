@@ -18,7 +18,7 @@ def make_knn_adjacency(data, n_neighbors):
 
     index.add(data)
 
-    distances, indices = index.search(self.data, n_neighbors)
+    distances, indices = index.search(data, n_neighbors)
 
 
     row_idx = np.repeat(np.arange(n_samples), n_neighbors)
