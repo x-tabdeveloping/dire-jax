@@ -295,7 +295,7 @@ def betti_curve(diagram, n_steps=100):
 # Distance is computed by normalising by the number of points, and then multiplying by the mass 
 # ratio (EMD requires same mass of both distributions) to account for the difference   
 #
-def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_key, n_steps=100):
+def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_key=random.PRNGKey(42), n_steps=100):
     """
     Perform a comprehensive persistence analysis by subsampling data, computing persistence diagrams, and
     calculating distances between Betti curves of high-dimensional and low-dimensional data. This analysis
@@ -370,7 +370,7 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
 # DTW, TWED, EMD for Betti curves;
 # 
 #
-def compute_global_metrics(data, layout, dimension, subsample_threshold=1.0, rng_key=42, n_steps=100, resolution = 100, do_knn = 100):
+def compute_global_metrics(data, layout, dimension, subsample_threshold=1.0, rng_key=random.PRNGKey(42), n_steps=100, resolution = 100, do_knn = 100):
     """
     Computes and compares persistence metrics between high-dimensional and low-dimensional data representations.
     The function calculates the Dynamic Time Warp (DTW), Time Warp Edit Distance (TWED), and Earth Mover Distance
