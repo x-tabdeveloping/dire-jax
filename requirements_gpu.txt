@@ -12,3 +12,4 @@ ripser
 fastdtw
 pytwed
 pot
+scikit-learn
