@@ -19,9 +19,33 @@ from utils import make_knn_adjacency, timing
 from scipy.spatial import procrustes
 from scipy.stats import spearmanr
 
-#import numpy as np
-from scipy.spatial import procrustes
-from scipy.stats import spearmanr
+
+from sklearn.manifold import trustworthiness
+
+
+
+
+# Function to compute continuity
+def continuity(X, Y, n_neighbors=25):
+    n_samples = X.shape[0]
+    
+    # Compute distance matrices
+    dist_X = np.linalg.norm(X[:, np.newaxis] - X, axis=2)
+    dist_Y = np.linalg.norm(Y[:, np.newaxis] - Y, axis=2)
+    
+    # Get nearest neighbors in the original space
+    ind_X = np.argsort(dist_X, axis=1)[:, 1:n_neighbors + 1]
+    ind_Y = np.argsort(dist_Y, axis=1)[:, 1:n_neighbors + 1]
+    
+    # Compute continuity
+    cont_sum = 0.0
+    for i in range(n_samples):
+        for j in range(n_neighbors):
+            if ind_Y[i, j] not in ind_X[i]:
+                cont_sum += 1.0
+                
+    continuity_score = 1.0 - (2.0 / (n_samples * n_neighbors * (2 * n_samples - 3 * n_neighbors - 1))) * cont_sum
+    return continuity_score
 
 
 # Function to compute Procrustes distance
@@ -45,13 +69,15 @@ def spearman_rank_corr(X, Y):
     return rank_corr
 
 # Example function for repeated random sampling
-def compute_quality_measures(X, Y, num_samples=None, sample_size=None, key=random.PRNGKey(0)):
+def compute_quality_measures(X, Y, num_samples=None, sample_size=None, n_neighbors = 25, key=random.PRNGKey(0)):
     if num_samples is None:
         num_samples = int(np.log(X.shape[0]))
     if sample_size is None:
         sample_size = int(np.sqrt(X.shape[0]))
     procrustes_distances = []
     spearman_correlations = []
+    trust = []
+    continuity_scores = []
 
     keys = random.split(key, num_samples)
     for k in keys:
@@ -60,11 +86,19 @@ def compute_quality_measures(X, Y, num_samples=None, sample_size=None, key=rando
         X_sample = X[sample_indices]
         Y_sample = Y[sample_indices]
 
+        # Compute trustworthiness
+        trust.append(trustworthiness(X_sample, Y_sample, n_neighbors = n_neighbors))
+        continuity_scores.append(continuity(X_sample, Y_sample, n_neighbors = n_neighbors))
+
         procrustes_distances.append(procrustes_distance(X_sample, Y_sample))
         spearman_correlations.append(spearman_rank_corr(X_sample, Y_sample))
     
     procrustes_mean = np.mean(procrustes_distances)
     procrustes_var = np.var(procrustes_distances)
+    trustworthiness_mean = np.mean(trust)
+    continuity_mean = np.mean(continuity_scores)
+    trustworthiness_var = np.var(trust)
+    continuity_var = np.var(continuity_scores)
     spearman_mean = np.mean(spearman_correlations)
     spearman_var = np.var(spearman_correlations)
 
@@ -72,7 +106,11 @@ def compute_quality_measures(X, Y, num_samples=None, sample_size=None, key=rando
         'procrustes_mean': procrustes_mean,
         'procrustes_variance': procrustes_var,
         'spearman_mean': spearman_mean,
-        'spearman_variance': spearman_var
+        'spearman_variance': spearman_var,
+        'trustworthiness_mean': trustworthiness_mean,
+        'trustworthiness_var': trustworthiness_var,
+        'continuity_mean':continuity_mean,
+        'continuity_var':continuity_var
     }
 
 # Example usage
