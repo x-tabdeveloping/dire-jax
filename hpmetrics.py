@@ -18,11 +18,23 @@ import pandas as pd
 from utils import make_knn_adjacency, timing
 from scipy.spatial import procrustes
 from scipy.stats import spearmanr
-import random
+
+#import numpy as np
+from scipy.spatial import procrustes
+from scipy.stats import spearmanr
+
 
 # Function to compute Procrustes distance
 def procrustes_distance(X, Y):
-    _, _, disparity = procrustes(X, Y)
+    ddim = X.shape[1] - Y.shape[1]
+    if ddim > 0: 
+        Z= np.pad(Y, ((0, 0), (0, ddim)), mode='constant', constant_values = 0)
+        _, _, disparity = procrustes(X, Z)
+    elif ddim < 0:
+        W= np.pad(X, ((0, 0), (0, -ddim)), mode='constant', constant_values =0)
+        _, _, disparity = procrustes(W, Y)
+    else:
+        _, _, disparity = procrustes(X, Y)
     return disparity
 
 # Function to compute Spearman's rank correlation
@@ -33,18 +45,18 @@ def spearman_rank_corr(X, Y):
     return rank_corr
 
 # Example function for repeated random sampling
-def compute_quality_measures(X, Y, num_samples:None, sample_size:None):
+def compute_quality_measures(X, Y, num_samples=None, sample_size=None, key=random.PRNGKey(0)):
+    if num_samples is None:
+        num_samples = int(np.log(X.shape[0]))
+    if sample_size is None:
+        sample_size = int(np.sqrt(X.shape[0]))
     procrustes_distances = []
     spearman_correlations = []
 
-    if num_samples is None:
-        num_samples = int(np.log(X.shape[0]))
-    
-    if sample_size is None:
-        sample_size = int(np.sqrt(X.shape[0]))
-
-    for _ in range(num_samples):
-        sample_indices = random.sample(range(X.shape[0]), sample_size)
+    keys = random.split(key, num_samples)
+    for k in keys:
+        sample_indices = random.choice(k, X.shape[0], (sample_size,), replace=False)
+        #sample_indices = random.sample(range(X.shape[0]), sample_size)
         X_sample = X[sample_indices]
         Y_sample = Y[sample_indices]
 
@@ -68,6 +80,8 @@ X = np.random.rand(1000, 50)  # Original high-dimensional data
 Y = np.random.rand(1000, 2)   # Reduced low-dimensional data
 results = compute_quality_measures(X, Y, num_samples=100, sample_size=200)
 print(results)
+
+
 #
 # Auxiliary functions
 #
@@ -494,5 +508,7 @@ def do_metrics(reducer, data, n_neighbors = 100, **kwargs):
     mdict.update(ldict)
     gdict = compute_global_metrics(data, layout, 1.0)
     mdict.update(gdict)
+    ndict = compute_quality_measures(data, layout)
+    mdict.update(ndict)
     return mdict
     
