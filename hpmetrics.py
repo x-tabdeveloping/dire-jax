@@ -16,7 +16,58 @@ from persim import wasserstein, bottleneck
 import plotly.express as px
 import pandas as pd
 from utils import make_knn_adjacency, timing
+from scipy.spatial import procrustes
+from scipy.stats import spearmanr
+import random
 
+# Function to compute Procrustes distance
+def procrustes_distance(X, Y):
+    _, _, disparity = procrustes(X, Y)
+    return disparity
+
+# Function to compute Spearman's rank correlation
+def spearman_rank_corr(X, Y):
+    distances_X = np.linalg.norm(X[:, np.newaxis] - X, axis=2)
+    distances_Y = np.linalg.norm(Y[:, np.newaxis] - Y, axis=2)
+    rank_corr, _ = spearmanr(distances_X.flatten(), distances_Y.flatten())
+    return rank_corr
+
+# Example function for repeated random sampling
+def compute_quality_measures(X, Y, num_samples:None, sample_size:None):
+    procrustes_distances = []
+    spearman_correlations = []
+
+    if num_samples is None:
+        num_samples = int(np.log(X.shape[0]))
+    
+    if sample_size is None:
+        sample_size = int(np.sqrt(X.shape[0]))
+
+    for _ in range(num_samples):
+        sample_indices = random.sample(range(X.shape[0]), sample_size)
+        X_sample = X[sample_indices]
+        Y_sample = Y[sample_indices]
+
+        procrustes_distances.append(procrustes_distance(X_sample, Y_sample))
+        spearman_correlations.append(spearman_rank_corr(X_sample, Y_sample))
+    
+    procrustes_mean = np.mean(procrustes_distances)
+    procrustes_var = np.var(procrustes_distances)
+    spearman_mean = np.mean(spearman_correlations)
+    spearman_var = np.var(spearman_correlations)
+
+    return {
+        'procrustes_mean': procrustes_mean,
+        'procrustes_variance': procrustes_var,
+        'spearman_mean': spearman_mean,
+        'spearman_variance': spearman_var
+    }
+
+# Example usage
+X = np.random.rand(1000, 50)  # Original high-dimensional data
+Y = np.random.rand(1000, 2)   # Reduced low-dimensional data
+results = compute_quality_measures(X, Y, num_samples=100, sample_size=200)
+print(results)
 #
 # Auxiliary functions
 #
@@ -198,7 +249,7 @@ def compute_neighbor_score(data, layout, n_neighbors):
 
     return neighbor_mean.item(), neighbor_std.item()
 
-def compute_local_metrics(data, layout, n_neighbors)
+def compute_local_metrics(data, layout, n_neighbors):
     stress_normalized = compute_stress(data, layout, n_neighbors)
     neighbor_score, _ = compute_neighbor_score(data, layout, n_neighbors)
     ldict = {"stress": stress_normalized, 'neighbor' : neighbor_score}
