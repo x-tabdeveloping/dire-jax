@@ -11,10 +11,76 @@ import gc
 import ot
 from ripser import ripser
 from fastdtw import fastdtw
-from pytwed import twed
+#from pytwed import twed
 from persim import wasserstein, bottleneck
 import plotly.express as px
 import pandas as pd
+from utils import make_knn_adjacency, timing
+from scipy.spatial import procrustes
+from scipy.stats import spearmanr
+
+#import numpy as np
+from scipy.spatial import procrustes
+from scipy.stats import spearmanr
+
+
+# Function to compute Procrustes distance
+def procrustes_distance(X, Y):
+    ddim = X.shape[1] - Y.shape[1]
+    if ddim > 0: 
+        Z= np.pad(Y, ((0, 0), (0, ddim)), mode='constant', constant_values = 0)
+        _, _, disparity = procrustes(X, Z)
+    elif ddim < 0:
+        W= np.pad(X, ((0, 0), (0, -ddim)), mode='constant', constant_values =0)
+        _, _, disparity = procrustes(W, Y)
+    else:
+        _, _, disparity = procrustes(X, Y)
+    return disparity
+
+# Function to compute Spearman's rank correlation
+def spearman_rank_corr(X, Y):
+    distances_X = np.linalg.norm(X[:, np.newaxis] - X, axis=2)
+    distances_Y = np.linalg.norm(Y[:, np.newaxis] - Y, axis=2)
+    rank_corr, _ = spearmanr(distances_X.flatten(), distances_Y.flatten())
+    return rank_corr
+
+# Example function for repeated random sampling
+def compute_quality_measures(X, Y, num_samples=None, sample_size=None, key=random.PRNGKey(0)):
+    if num_samples is None:
+        num_samples = int(np.log(X.shape[0]))
+    if sample_size is None:
+        sample_size = int(np.sqrt(X.shape[0]))
+    procrustes_distances = []
+    spearman_correlations = []
+
+    keys = random.split(key, num_samples)
+    for k in keys:
+        sample_indices = random.choice(k, X.shape[0], (sample_size,), replace=False)
+        #sample_indices = random.sample(range(X.shape[0]), sample_size)
+        X_sample = X[sample_indices]
+        Y_sample = Y[sample_indices]
+
+        procrustes_distances.append(procrustes_distance(X_sample, Y_sample))
+        spearman_correlations.append(spearman_rank_corr(X_sample, Y_sample))
+    
+    procrustes_mean = np.mean(procrustes_distances)
+    procrustes_var = np.var(procrustes_distances)
+    spearman_mean = np.mean(spearman_correlations)
+    spearman_var = np.var(spearman_correlations)
+
+    return {
+        'procrustes_mean': procrustes_mean,
+        'procrustes_variance': procrustes_var,
+        'spearman_mean': spearman_mean,
+        'spearman_variance': spearman_var
+    }
+
+# Example usage
+X = np.random.rand(1000, 50)  # Original high-dimensional data
+Y = np.random.rand(1000, 2)   # Reduced low-dimensional data
+results = compute_quality_measures(X, Y, num_samples=100, sample_size=200)
+print(results)
+
 
 #
 # Auxiliary functions
@@ -197,6 +263,13 @@ def compute_neighbor_score(data, layout, n_neighbors):
 
     return neighbor_mean.item(), neighbor_std.item()
 
+def compute_local_metrics(data, layout, n_neighbors):
+    stress_normalized = compute_stress(data, layout, n_neighbors)
+    neighbor_score, _ = compute_neighbor_score(data, layout, n_neighbors)
+    ldict = {"stress": stress_normalized, 'neighbor' : neighbor_score}
+    return ldict
+
+
 #
 # Global metrics based on persistence (co)homology
 #
@@ -204,7 +277,7 @@ def compute_neighbor_score(data, layout, n_neighbors):
 #
 # Bernoulli trial subsampling
 #
-def threshold_subsample(data_hd, data_ld, threshold, rng_key):
+def threshold_subsample(data_hd, data_ld, threshold=1.0, rng_key=42):
     """
     Subsample high-dimensional and corresponding low-dimensional data based on a specified threshold.
     The function generates random numbers and selects the samples where the random number is less than the threshold.
@@ -227,7 +300,7 @@ def threshold_subsample(data_hd, data_ld, threshold, rng_key):
 #
 # Producing diagrams in dimensions up to dim (inclusive) for data and layout
 #
-def diagrams(data, layout, max_dim, subsample_threshold, rng_key):
+def diagrams(data, layout, max_dim, subsample_threshold, do_knn = 100, rng_key=42):
     """
     Generates persistence diagrams for high-dimensional and low-dimensional data up to a specified dimension,
     after subsampling both datasets based on a threshold. The subsampling is performed to reduce the dataset size
@@ -245,8 +318,14 @@ def diagrams(data, layout, max_dim, subsample_threshold, rng_key):
           for the respective high-dimensional and low-dimensional datasets.
     """
     data_hd, data_ld = threshold_subsample(data, layout, subsample_threshold, rng_key)
-    diags_hd = ripser(data_hd, maxdim=max_dim)['dgms']
-    diags_ld = ripser(data_ld, maxdim=max_dim)['dgms']
+    if do_knn is not None:
+        adj_hd = make_knn_adjacency(data_hd, n_neighbors=do_knn)
+        adj_ld = make_knn_adjacency(data_ld, n_neighbors=do_knn)
+        diags_hd = ripser(adj_hd, distance_matrix = True)['dgms']
+        diags_ld = ripser(adj_ld, distance_matrix = True)['dgms']
+    else:
+        diags_hd = ripser(data_hd, maxdim=max_dim)['dgms']
+        diags_ld = ripser(data_ld, maxdim=max_dim,)['dgms']
     return {'data': diags_hd, 'layout': diags_ld}
 
 #
@@ -288,7 +367,7 @@ def betti_curve(diagram, n_steps=100):
 # Distance is computed by normalising by the number of points, and then multiplying by the mass 
 # ratio (EMD requires same mass of both distributions) to account for the difference   
 #
-def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_key, n_steps=100):
+def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_key=random.PRNGKey(42), n_steps=100):
     """
     Perform a comprehensive persistence analysis by subsampling data, computing persistence diagrams, and
     calculating distances between Betti curves of high-dimensional and low-dimensional data. This analysis
@@ -363,7 +442,7 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
 # DTW, TWED, EMD for Betti curves;
 # 
 #
-def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key, n_steps=100):
+def compute_global_metrics(data, layout, dimension, subsample_threshold=1.0, rng_key=random.PRNGKey(42), n_steps=100, do_knn = 100):
     """
     Computes and compares persistence metrics between high-dimensional and low-dimensional data representations.
     The function calculates the Dynamic Time Warp (DTW), Time Warp Edit Distance (TWED), and Earth Mover Distance
@@ -382,12 +461,12 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
     dict: A dictionary containing lists of computed distances for each of the three metrics (DTW, TWED, and EMD).
           Each list corresponds to a dimension in which the distances were computed.
     """
-    metrics = {'dtw': [], 'twed': [], 'emd': [], 'wass': [], 'bot': []}
+    metrics = {'dtw': [], 'emd': [], 'wass': [], 'bot': []}
     data_hd, data_ld = threshold_subsample(data, layout, subsample_threshold, rng_key)
     n_points = data_hd.shape[0]
     assert n_points == data_ld.shape[0]
 
-    diags = diagrams(data_hd, data_ld, dimension, subsample_threshold, rng_key)
+    diags = diagrams(data_hd, data_ld, dimension, subsample_threshold, do_knn, rng_key)
 
     for diag_hd, diag_ld in zip(diags['data'], diags['layout']):
         axis_x_hd, axis_y_hd = betti_curve(diag_hd, n_steps=n_steps)
@@ -398,8 +477,8 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
         dist_dtw, path = fastdtw(seq0, seq1, dist=2)
         dist_dtw /= n_points
         # Computing TWED distance (normalized)
-        dist_twed = twed(axis_y_hd, axis_y_ld, axis_x_hd, axis_x_ld, p=2, fast=True)
-        dist_twed /= n_points
+        #dist_twed = twed(axis_y_hd, axis_y_ld, axis_x_hd, axis_x_ld, p=2, fast=True)
+        #dist_twed /= n_points
         # Computing EMD distance (normalized)
         sum_hd = np.sum(axis_y_hd)
         sum_ld = np.sum(axis_y_ld)
@@ -408,15 +487,28 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold, rng_key
         dist_emd = ot.emd2_1d(axis_x_hd, axis_x_ld, axis_y_hd_, axis_y_ld_, metric='sqeuclidean')
         dist_emd = dist_emd / n_points * np.max([sum_hd / sum_ld, sum_ld / sum_hd])
         # Computing Wasserstein distance (normalized)
-        dist_wass = wasserstein(diag_hd, diag_ld)
-        dist_wass /= n_points
+        #dist_wass = wasserstein(diag_hd, diag_ld)
+        #dist_wass /= n_points
         # Computing bottleneck distance (without normalization)
-        dist_bot = bottleneck(diag_hd, diag_ld)
+        #dist_bot = bottleneck(diag_hd, diag_ld)
         # Adding metrics to dictionary 
         metrics['dtw'].append(dist_dtw)
-        metrics['twed'].append(dist_twed)
+        #metrics['twed'].append(dist_twed)
         metrics['emd'].append(dist_emd)
-        metrics['wass'].append(dist_wass)
-        metrics['bot'].append(dist_bot)
+        #metrics['wass'].append(dist_wass)
+        #metrics['bot'].append(dist_bot)
 
     return metrics
+
+def do_metrics(reducer, data, n_neighbors = 100, **kwargs):
+    mdict = {}
+    with timing('timing', mdict):
+        layout = reducer.fit_transform(data)
+    ldict = compute_local_metrics(data, layout, n_neighbors)
+    mdict.update(ldict)
+    gdict = compute_global_metrics(data, layout, 1.0)
+    mdict.update(gdict)
+    ndict = compute_quality_measures(data, layout)
+    mdict.update(ndict)
+    return mdict
+    

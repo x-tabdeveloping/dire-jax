@@ -10,5 +10,6 @@ loguru
 persim
 ripser
 fastdtw
-pytwed
+#pytwed
 pot
+scikit-learn
