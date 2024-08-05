@@ -487,16 +487,16 @@ def compute_global_metrics(data, layout, dimension, subsample_threshold=1.0, rng
         dist_emd = ot.emd2_1d(axis_x_hd, axis_x_ld, axis_y_hd_, axis_y_ld_, metric='sqeuclidean')
         dist_emd = dist_emd / n_points * np.max([sum_hd / sum_ld, sum_ld / sum_hd])
         # Computing Wasserstein distance (normalized)
-        dist_wass = wasserstein(diag_hd, diag_ld)
-        dist_wass /= n_points
+        #dist_wass = wasserstein(diag_hd, diag_ld)
+        #dist_wass /= n_points
         # Computing bottleneck distance (without normalization)
-        dist_bot = bottleneck(diag_hd, diag_ld)
+        #dist_bot = bottleneck(diag_hd, diag_ld)
         # Adding metrics to dictionary 
         metrics['dtw'].append(dist_dtw)
         #metrics['twed'].append(dist_twed)
         metrics['emd'].append(dist_emd)
-        metrics['wass'].append(dist_wass)
-        metrics['bot'].append(dist_bot)
+        #metrics['wass'].append(dist_wass)
+        #metrics['bot'].append(dist_bot)
 
     return metrics
 
