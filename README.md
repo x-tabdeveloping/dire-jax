@@ -1,4 +1,4 @@
-# dire
-### DImensionality REduction
+# DiRe - JAX
+### New DImensionality REduction package written in JAX 
 
-We implement tools to analyze dimension reduction algorithms and offer our own dimension reduction method (for now called DiRe).
+We implement tools to analyze dimension reduction algorithms, and offer a new dimension reduction method called DiRe - JAX.
