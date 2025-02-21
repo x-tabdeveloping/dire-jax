@@ -1,4 +1,4 @@
 # DiRe - JAX
-### New DImensionality REduction package written in JAX 
+### A new DImensionality REduction package written in JAX 
 
-We implement tools to analyze dimension reduction algorithms, and offer a new dimension reduction method called DiRe - JAX.
+We offer a new dimension reduction tool called DiRe - JAX, and benchmark it against the existing approaches: UMAP (original and Rapids.AI versions), and tSNE (Rapids.AI version)

@@ -12,8 +12,6 @@ Original file is located at
 from google.colab import drive
 drive.mount('/content/drive')
 
-!pip3 install --upgrade pip
-
 #
 # FAISS has to be installed from conda: we need CondaColab
 #
@@ -36,11 +34,6 @@ condacolab.install()
 # Installing DiRe requirements
 #
 !pip install -r requirements_gpu.txt
-
-#
-# Doing some maintenance work (remove when becomes obsolete)
-#
-!pip install --upgrade cffi==1.17.1
 
 #
 # Benchmark-specific installs
@@ -821,7 +814,7 @@ viz_benchmark(reducer_disk,
               features_disk,
               labels=labels_disk,
               dimension=1,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -867,7 +860,7 @@ viz_benchmark(tred_disk,
               features_disk,
               labels=labels_disk,
               dimension=1,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -911,7 +904,7 @@ viz_benchmark(cured_disk,
               features_disk,
               labels=labels_disk,
               dimension=1,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -955,7 +948,7 @@ viz_benchmark(red_disk,
               features_disk,
               labels=labels_disk,
               dimension=1,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1018,7 +1011,7 @@ reducer_sphere = DiRe(dimension=3,
 viz_benchmark(reducer_sphere,
               features_sphere,
               labels=labels_sphere,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1063,7 +1056,7 @@ tred_sphere = cTSNE(n_components=2,
 viz_benchmark(tred_sphere,
               features_sphere,
               labels=labels_sphere,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1106,7 +1099,7 @@ cured_sphere = cUMAP(n_components=reducer_sphere.dimension,
 viz_benchmark(cured_sphere,
               features_sphere,
               labels=labels_sphere,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1149,7 +1142,7 @@ red_sphere = UMAP(n_components=reducer_sphere.dimension,
 viz_benchmark(red_sphere,
               features_sphere,
               labels=labels_sphere,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1221,7 +1214,7 @@ reducer_ell = DiRe(dimension=3,
 viz_benchmark(reducer_ell,
               features_ell,
               labels=labels_ell,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1266,7 +1259,7 @@ tred_ell = cTSNE(n_components=2,
 viz_benchmark(tred_ell,
               features_ell,
               labels=labels_ell,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1309,7 +1302,7 @@ cured_ell = cUMAP(n_components=reducer_ell.dimension,
 viz_benchmark(cured_ell,
               features_ell,
               labels=labels_ell,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1352,7 +1345,7 @@ red_ell = UMAP(n_components=reducer_ell.dimension,
 viz_benchmark(red_ell,
               features_ell,
               labels=labels_ell,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1948,7 +1941,7 @@ viz_benchmark(red_l32,
               features_l32_sub,
               labels=labels_l32_sub,
               dimension=1,
-              subsample_threshold=0.25,
+              subsample_threshold=0.1,
               rng_key=random.PRNGKey(42),
               point_size=2)
 
@@ -1956,7 +1949,7 @@ benchmark = run_benchmark(red_l32,
                           features_l32_sub,
                           labels=labels_l32_sub,
                           dimension=1,
-                          subsample_threshold=0.25,
+                          subsample_threshold=0.3,
                           rng_key=random.PRNGKey(42),
                           num_trials=1,
                           only_stats=True,)
@@ -1982,4 +1975,3 @@ benchmarks_l32['umap'] =  {
     }
 
 plot_algorithm_comparison(benchmarks_l32)
-

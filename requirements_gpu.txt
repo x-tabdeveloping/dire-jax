@@ -1,5 +1,5 @@
-jax[cuda12]
-faiss-gpu
+﻿jax[cuda12]
+faiss
 numpy
 scipy
 tqdm
