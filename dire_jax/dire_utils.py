@@ -1,5 +1,8 @@
 # dire_utils.py
 
+"""
+Utilities for plotting, benchmarking, and miscellany
+"""
 
 #
 # Imports

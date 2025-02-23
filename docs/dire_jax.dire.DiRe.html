@@ -1,0 +1,1939 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>dire_jax.dire.DiRe</title>
+    <meta name="generator" content="pydoctor 24.11.2"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+    
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          dire_jax <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="apidocs-help-button" title="Help" href="apidocs-help.html"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 10px;">
+          <p>For more information on the search, visit the <a href="apidocs-help.html#rst-search">help page</a>.</p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Class</span>
+        <code class="thisobject"><a href="dire_jax.dire.DiRe.html" class="internal-link" title="This class"><wbr></wbr>Di<wbr></wbr>Re</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Methods</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#__init__" class="internal-link" title="dire_jax.dire.DiRe.__init__">__init__</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#do_layout" class="internal-link" title="dire_jax.dire.DiRe.do_layout">do<wbr></wbr>_layout</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#do_pca_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_pca_embedding">do<wbr></wbr>_pca<wbr></wbr>_embedding</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#do_rand_sampling" class="internal-link" title="dire_jax.dire.DiRe.do_rand_sampling">do<wbr></wbr>_rand<wbr></wbr>_sampling</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#do_random_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_random_embedding">do<wbr></wbr>_random<wbr></wbr>_embedding</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#do_spectral_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_spectral_embedding">do<wbr></wbr>_spectral<wbr></wbr>_embedding</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#find_ab_params" class="internal-link" title="dire_jax.dire.DiRe.find_ab_params">find<wbr></wbr>_ab<wbr></wbr>_params</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#fit" class="internal-link" title="dire_jax.dire.DiRe.fit">fit</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#fit_transform" class="internal-link" title="dire_jax.dire.DiRe.fit_transform">fit<wbr></wbr>_transform</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#make_knn_adjacency" class="internal-link" title="dire_jax.dire.DiRe.make_knn_adjacency">make<wbr></wbr>_knn<wbr></wbr>_adjacency</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#transform" class="internal-link" title="dire_jax.dire.DiRe.transform">transform</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#visualize" class="internal-link" title="dire_jax.dire.DiRe.visualize">visualize</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Attributes</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#a" class="internal-link" title="dire_jax.dire.DiRe.a">a</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#adjacency" class="internal-link" title="dire_jax.dire.DiRe.adjacency">adjacency</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#b" class="internal-link" title="dire_jax.dire.DiRe.b">b</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#col_idx" class="internal-link" title="dire_jax.dire.DiRe.col_idx">col<wbr></wbr>_idx</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#cutoff" class="internal-link" title="dire_jax.dire.DiRe.cutoff">cutoff</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#data" class="internal-link" title="dire_jax.dire.DiRe.data">data</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#data_dim" class="internal-link" title="dire_jax.dire.DiRe.data_dim">data<wbr></wbr>_dim</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#dimension" class="internal-link" title="dire_jax.dire.DiRe.dimension">dimension</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#distances" class="internal-link" title="dire_jax.dire.DiRe.distances">distances</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#indices" class="internal-link" title="dire_jax.dire.DiRe.indices">indices</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#init_embedding" class="internal-link" title="dire_jax.dire.DiRe.init_embedding">init<wbr></wbr>_embedding</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#init_embedding_type" class="internal-link" title="dire_jax.dire.DiRe.init_embedding_type">init<wbr></wbr>_embedding<wbr></wbr>_type</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#layout" class="internal-link" title="dire_jax.dire.DiRe.layout">layout</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#logger" class="internal-link" title="dire_jax.dire.DiRe.logger">logger</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#max_iter_layout" class="internal-link" title="dire_jax.dire.DiRe.max_iter_layout">max<wbr></wbr>_iter<wbr></wbr>_layout</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#min_dist" class="internal-link" title="dire_jax.dire.DiRe.min_dist">min<wbr></wbr>_dist</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#n_neighbors" class="internal-link" title="dire_jax.dire.DiRe.n_neighbors">n<wbr></wbr>_neighbors</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#n_sample_dirs" class="internal-link" title="dire_jax.dire.DiRe.n_sample_dirs">n<wbr></wbr>_sample<wbr></wbr>_dirs</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#n_samples" class="internal-link" title="dire_jax.dire.DiRe.n_samples">n<wbr></wbr>_samples</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#nearest_neighbor_distances" class="internal-link" title="dire_jax.dire.DiRe.nearest_neighbor_distances">nearest<wbr></wbr>_neighbor<wbr></wbr>_distances</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#neg_ratio" class="internal-link" title="dire_jax.dire.DiRe.neg_ratio">neg<wbr></wbr>_ratio</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#pca_kernel" class="internal-link" title="dire_jax.dire.DiRe.pca_kernel">pca<wbr></wbr>_kernel</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#row_idx" class="internal-link" title="dire_jax.dire.DiRe.row_idx">row<wbr></wbr>_idx</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#sample_size" class="internal-link" title="dire_jax.dire.DiRe.sample_size">sample<wbr></wbr>_size</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#sim_kernel" class="internal-link" title="dire_jax.dire.DiRe.sim_kernel">sim<wbr></wbr>_kernel</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#spread" class="internal-link" title="dire_jax.dire.DiRe.spread">spread</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code><a href="dire_jax.dire.html" class="internal-link" title="The parent of this class">dire</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        <div class="childrenKindTitle">Classes</div>
+        <ul>
+    
+    <li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.DiRe.html" class="internal-link" title="dire_jax.dire.DiRe"><wbr></wbr>Di<wbr></wbr>Re</a></code>
+            </div>
+        
+
+    </li>
+</ul>
+
+        <div class="childrenKindTitle">Functions</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#distribution_kernel" class="internal-link" title="dire_jax.dire.distribution_kernel">distribution<wbr></wbr>_kernel</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#get_slice" class="internal-link" title="dire_jax.dire.get_slice">get<wbr></wbr>_slice</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#grad_coeff_att" class="internal-link" title="dire_jax.dire.grad_coeff_att">grad<wbr></wbr>_coeff<wbr></wbr>_att</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#grad_coeff_rep" class="internal-link" title="dire_jax.dire.grad_coeff_rep">grad<wbr></wbr>_coeff<wbr></wbr>_rep</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#rand_directions" class="internal-link" title="dire_jax.dire.rand_directions">rand<wbr></wbr>_directions</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#vmap_coeff_att" class="internal-link" title="dire_jax.dire.vmap_coeff_att">vmap<wbr></wbr>_coeff<wbr></wbr>_att</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#vmap_coeff_rep" class="internal-link" title="dire_jax.dire.vmap_coeff_rep">vmap<wbr></wbr>_coeff<wbr></wbr>_rep</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.dire.html#vmap_get_slice" class="internal-link" title="dire_jax.dire.vmap_get_slice">vmap<wbr></wbr>_get<wbr></wbr>_slice</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapseSideBar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <div id="main" class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="class"><code><code><a href="index.html" class="internal-link">dire_jax</a></code><wbr></wbr>.<code><a href="dire_jax.dire.html" class="internal-link" title="dire_jax.dire">dire</a></code><wbr></wbr>.<code><a href="dire_jax.dire.DiRe.html" class="internal-link" title="dire_jax.dire.DiRe">DiRe</a></code></code></h1>
+          <div id="showPrivate">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          class documentation
+        </div>
+
+        <div class="extrasDocstring">
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">DiRe</span>:</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="dire_jax.dire.DiRe.__init__">DiRe(dimension, n_neighbors, init_embedding_type, sim_kernel, ...)</a></code></p>
+          <p><a href="classIndex.html#dire_jax.dire.DiRe">View In Hierarchy</a></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p class="pre">Dimension Reduction (DiRe) is a class designed to reduce the dimensionality of high-dimensional
+data using various embedding techniques and optimization algorithms. It supports embedding
+initialization methods such as random and spectral embeddings and utilizes k-nearest neighbors
+for manifold learning.
+
+Parameters
+----------
+dimension: (int) Embedding dimension, default 2.
+n_neighbors: (int) Number of nearest neighbors to consider for each point, default 16.
+init_embedding_type: (str)
+    Method to initialize the embedding; choices are:
+     - 'random' for random projection based on the Johnson-Lindenstrauss lemma;
+     - 'spectral' for spectral embedding (with sim_kernel as similarity kernel);
+     - 'pca' for PCA embedding (classical, no kernel).
+     By default, 'random'.
+sim_kernel: (callable)
+    A similarity kernel function that transforms a distance metric to a similarity score.
+    The function should have the form `lambda distance: float -&gt; similarity: float`; default `None`.
+max_iter_layout: (int)
+    Maximum number of iterations to run the layout optimization, default 128.
+min_dist: (float)
+    Minimum distance scale for distribution kernel, default 0.01.
+spread: (float)
+    Spread of the distribution kernel, default 1.0.
+cutoff: (float)
+    Cutoff for clipping forces during layout optimization, default 42.0.
+n_sample_dirs: (int)
+    Number of directions to sample in random sampling, default 8.
+sample_size: (int)
+    Number of samples per direction in random sampling, default 16.
+neg_ratio: (int)
+    Ratio of negative to positive samples in random sampling, default 8.
+my_logger: (logger.Logger or `None`)
+    Custom logger for logging events; if None, a default logger is created, default `None`.
+verbose: (bool)
+    Flag to enable verbose output, default `True`.
+
+Attributes
+----------
+dimension: int
+    Target dimensionality of the output space.
+n_neighbors: int
+    Number of neighbors to consider in the k-nearest neighbors graph.
+init_embedding_type: str
+    Chosen method for initial embedding.
+sim_kernel: callable
+    Similarity kernel function to be used if 'init_embedding_type' is 'spectral', by default `None`.
+pca_kernel: callable
+    Kernel function to be used if 'init_embedding_type' is 'pca', by default `None`.
+max_iter_layout: int
+    Maximum iterations for optimizing the layout.
+min_dist: float
+    Minimum distance for repulsion used in the distribution kernel.
+spread: float
+    Spread between the data points used in the distribution kernel.
+cutoff: float
+    Maximum cutoff for forces during optimization.
+n_sample_dirs: int
+    Number of random directions sampled.
+sample_size: int
+    Number of samples per random direction.
+neg_ratio: int
+    Ratio of negative to positive samples in the sampling process.
+logger: logger.Logger or `None`
+    Logger used for logging informational and warning messages.
+
+Methods
+-------
+fit_transform(data)
+    A convenience method that fits the model and then transforms the data.
+    The separate `fit` and `transform` methods can only be used one after
+    another because dimension reduction is applied to the dataset as a whole.
+visualize(labels=None, point_size=2)
+    Visualizes the transformed data, optionally using labels to color the points.</p></div>
+        </div>
+
+        <div id="splitTables">
+          <table class="children sortable" id="id3">
+  
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#__init__" class="internal-link" title="dire_jax.dire.DiRe.__init__">__init__</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#do_layout" class="internal-link" title="dire_jax.dire.DiRe.do_layout">do<wbr></wbr>_layout</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#do_pca_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_pca_embedding">do<wbr></wbr>_pca<wbr></wbr>_embedding</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#do_rand_sampling" class="internal-link" title="dire_jax.dire.DiRe.do_rand_sampling">do<wbr></wbr>_rand<wbr></wbr>_sampling</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#do_random_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_random_embedding">do<wbr></wbr>_random<wbr></wbr>_embedding</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#do_spectral_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_spectral_embedding">do<wbr></wbr>_spectral<wbr></wbr>_embedding</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#find_ab_params" class="internal-link" title="dire_jax.dire.DiRe.find_ab_params">find<wbr></wbr>_ab<wbr></wbr>_params</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#fit" class="internal-link" title="dire_jax.dire.DiRe.fit">fit</a></code></td>
+    <td>Fit the model to data: create the kNN graph and fit the probability kernel to force layout parameters.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#fit_transform" class="internal-link" title="dire_jax.dire.DiRe.fit_transform">fit<wbr></wbr>_transform</a></code></td>
+    <td>Fit the model to data and transform it into the low-dimensional layout.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#make_knn_adjacency" class="internal-link" title="dire_jax.dire.DiRe.make_knn_adjacency">make<wbr></wbr>_knn<wbr></wbr>_adjacency</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#transform" class="internal-link" title="dire_jax.dire.DiRe.transform">transform</a></code></td>
+    <td>Transform the fitted data into a lower-dimensional layout.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#visualize" class="internal-link" title="dire_jax.dire.DiRe.visualize">visualize</a></code></td>
+    <td>Generate a visualization of the data in the transformed space using a scatter plot. Supports both 2D and 3D visualizations depending on the specified dimension.</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#a" class="internal-link" title="dire_jax.dire.DiRe.a">a</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#adjacency" class="internal-link" title="dire_jax.dire.DiRe.adjacency">adjacency</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#b" class="internal-link" title="dire_jax.dire.DiRe.b">b</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#col_idx" class="internal-link" title="dire_jax.dire.DiRe.col_idx">col<wbr></wbr>_idx</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#cutoff" class="internal-link" title="dire_jax.dire.DiRe.cutoff">cutoff</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#data" class="internal-link" title="dire_jax.dire.DiRe.data">data</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#data_dim" class="internal-link" title="dire_jax.dire.DiRe.data_dim">data<wbr></wbr>_dim</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#dimension" class="internal-link" title="dire_jax.dire.DiRe.dimension">dimension</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#distances" class="internal-link" title="dire_jax.dire.DiRe.distances">distances</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#indices" class="internal-link" title="dire_jax.dire.DiRe.indices">indices</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#init_embedding" class="internal-link" title="dire_jax.dire.DiRe.init_embedding">init<wbr></wbr>_embedding</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#init_embedding_type" class="internal-link" title="dire_jax.dire.DiRe.init_embedding_type">init<wbr></wbr>_embedding<wbr></wbr>_type</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#layout" class="internal-link" title="dire_jax.dire.DiRe.layout">layout</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#logger" class="internal-link" title="dire_jax.dire.DiRe.logger">logger</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#max_iter_layout" class="internal-link" title="dire_jax.dire.DiRe.max_iter_layout">max<wbr></wbr>_iter<wbr></wbr>_layout</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#min_dist" class="internal-link" title="dire_jax.dire.DiRe.min_dist">min<wbr></wbr>_dist</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#n_neighbors" class="internal-link" title="dire_jax.dire.DiRe.n_neighbors">n<wbr></wbr>_neighbors</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#n_sample_dirs" class="internal-link" title="dire_jax.dire.DiRe.n_sample_dirs">n<wbr></wbr>_sample<wbr></wbr>_dirs</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#n_samples" class="internal-link" title="dire_jax.dire.DiRe.n_samples">n<wbr></wbr>_samples</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#nearest_neighbor_distances" class="internal-link" title="dire_jax.dire.DiRe.nearest_neighbor_distances">nearest<wbr></wbr>_neighbor<wbr></wbr>_distances</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#neg_ratio" class="internal-link" title="dire_jax.dire.DiRe.neg_ratio">neg<wbr></wbr>_ratio</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#pca_kernel" class="internal-link" title="dire_jax.dire.DiRe.pca_kernel">pca<wbr></wbr>_kernel</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#row_idx" class="internal-link" title="dire_jax.dire.DiRe.row_idx">row<wbr></wbr>_idx</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#sample_size" class="internal-link" title="dire_jax.dire.DiRe.sample_size">sample<wbr></wbr>_size</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#sim_kernel" class="internal-link" title="dire_jax.dire.DiRe.sim_kernel">sim<wbr></wbr>_kernel</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#spread" class="internal-link" title="dire_jax.dire.DiRe.spread">spread</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="childList">
+          <div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, dimension=2, n_neighbors=16, init_embedding_type=<span class="rst-variable-quote">'</span><span class="rst-variable-string">random</span><span class="rst-variable-quote">'</span>, sim_kernel=None, pca_kernel=None, max_iter_layout=128, min_dist=0.01, spread=1.0, cutoff=42.0, n_sample_dirs=8, sample_size=16, neg_ratio=8, my_logger=None, verbose=True)</span>:
+    
+    <a class="headerLink" href="#__init__" title="dire_jax.dire.DiRe.__init__">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.do_layout">
+    
+  </a>
+  <a name="do_layout">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">do_layout</span><span class="function-signature">(self)</span>:
+    
+    <a class="headerLink" href="#do_layout" title="dire_jax.dire.DiRe.do_layout">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.do_pca_embedding">
+    
+  </a>
+  <a name="do_pca_embedding">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">do_pca_embedding</span><span class="function-signature">(self)</span>:
+    
+    <a class="headerLink" href="#do_pca_embedding" title="dire_jax.dire.DiRe.do_pca_embedding">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.do_rand_sampling">
+    
+  </a>
+  <a name="do_rand_sampling">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">do_rand_sampling</span><span class="function-signature">(self, key, arr, n_samples, n_dirs, neg_ratio)</span>:
+    
+    <a class="headerLink" href="#do_rand_sampling" title="dire_jax.dire.DiRe.do_rand_sampling">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.do_random_embedding">
+    
+  </a>
+  <a name="do_random_embedding">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">do_random_embedding</span><span class="function-signature">(self)</span>:
+    
+    <a class="headerLink" href="#do_random_embedding" title="dire_jax.dire.DiRe.do_random_embedding">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.do_spectral_embedding">
+    
+  </a>
+  <a name="do_spectral_embedding">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">do_spectral_embedding</span><span class="function-signature">(self)</span>:
+    
+    <a class="headerLink" href="#do_spectral_embedding" title="dire_jax.dire.DiRe.do_spectral_embedding">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.find_ab_params">
+    
+  </a>
+  <a name="find_ab_params">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">find_ab_params</span><span class="function-signature">(self, min_dist=0.01, spread=1.0)</span>:
+    
+    <a class="headerLink" href="#find_ab_params" title="dire_jax.dire.DiRe.find_ab_params">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.fit">
+    
+  </a>
+  <a name="fit">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">fit</span><span class="function-signature">(self, data)</span>:
+    
+    <a class="headerLink" href="#fit" title="dire_jax.dire.DiRe.fit">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="pre">Fit the model to data: create the kNN graph and fit the probability kernel to force layout parameters.
+
+Parameters
+----------
+data: (numpy.ndarray)
+    High-dimensional data to fit the model. Shape (n_samples, n_features).
+
+Returns
+-------
+self: The DiRe instance fitted to data.</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.fit_transform">
+    
+  </a>
+  <a name="fit_transform">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">fit_transform</span><span class="function-signature">(self, data)</span>:
+    
+    <a class="headerLink" href="#fit_transform" title="dire_jax.dire.DiRe.fit_transform">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="pre">Fit the model to data and transform it into the low-dimensional layout.
+
+Parameters
+----------
+data: (numpy.ndarray)
+    High-dimensional data to fit and transform. Shape (n_samples, n_features)
+
+Returns
+-------
+numpy.ndarray:
+    The lower-dimensional data embedding. Shape (n_samples, dimension)</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.make_knn_adjacency">
+    
+  </a>
+  <a name="make_knn_adjacency">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">make_knn_adjacency</span><span class="function-signature">(self)</span>:
+    
+    <a class="headerLink" href="#make_knn_adjacency" title="dire_jax.dire.DiRe.make_knn_adjacency">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.transform">
+    
+  </a>
+  <a name="transform">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">transform</span><span class="function-signature">(self)</span>:
+    
+    <a class="headerLink" href="#transform" title="dire_jax.dire.DiRe.transform">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="pre">Transform the fitted data into a lower-dimensional layout.
+
+Returns
+-------
+numpy.ndarray:
+    The lower-dimensional data embedding. Shape (n_samples, dimension).</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="dire_jax.dire.DiRe.visualize">
+    
+  </a>
+  <a name="visualize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">visualize</span><span class="function-signature">(self, labels=None, point_size=2)</span>:
+    
+    <a class="headerLink" href="#visualize" title="dire_jax.dire.DiRe.visualize">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="pre">Generate a visualization of the data in the transformed space using a scatter plot.
+Supports both 2D and 3D visualizations depending on the specified dimension.
+
+Parameters
+----------
+labels: (numpy.ndarray or `None`)
+    Labels for each data point to color the points in the visualization, default `None`.
+point_size: (int)
+    Size of points in the scatter plot, default 2.
+
+Returns
+-------
+plotly.graph_objs._figure.Figure or `None`:
+    A plotly figure object if the visualization is successful; None if no layout is available.</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.a">
+    
+  </a>
+  <a name="a">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">a</span> =
+    
+    <a class="headerLink" href="#a" title="dire_jax.dire.DiRe.a">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.adjacency">
+    
+  </a>
+  <a name="adjacency">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">adjacency</span> =
+    
+    <a class="headerLink" href="#adjacency" title="dire_jax.dire.DiRe.adjacency">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.b">
+    
+  </a>
+  <a name="b">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">b</span> =
+    
+    <a class="headerLink" href="#b" title="dire_jax.dire.DiRe.b">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.col_idx">
+    
+  </a>
+  <a name="col_idx">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">col_idx</span> =
+    
+    <a class="headerLink" href="#col_idx" title="dire_jax.dire.DiRe.col_idx">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.cutoff">
+    
+  </a>
+  <a name="cutoff">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">cutoff</span> =
+    
+    <a class="headerLink" href="#cutoff" title="dire_jax.dire.DiRe.cutoff">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.data">
+    
+  </a>
+  <a name="data">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">data</span> =
+    
+    <a class="headerLink" href="#data" title="dire_jax.dire.DiRe.data">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.data_dim">
+    
+  </a>
+  <a name="data_dim">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">data_dim</span> =
+    
+    <a class="headerLink" href="#data_dim" title="dire_jax.dire.DiRe.data_dim">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.dimension">
+    
+  </a>
+  <a name="dimension">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">dimension</span> =
+    
+    <a class="headerLink" href="#dimension" title="dire_jax.dire.DiRe.dimension">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.distances">
+    
+  </a>
+  <a name="distances">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">distances</span> =
+    
+    <a class="headerLink" href="#distances" title="dire_jax.dire.DiRe.distances">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.indices">
+    
+  </a>
+  <a name="indices">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">indices</span> =
+    
+    <a class="headerLink" href="#indices" title="dire_jax.dire.DiRe.indices">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.init_embedding">
+    
+  </a>
+  <a name="init_embedding">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">init_embedding</span> =
+    
+    <a class="headerLink" href="#init_embedding" title="dire_jax.dire.DiRe.init_embedding">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.init_embedding_type">
+    
+  </a>
+  <a name="init_embedding_type">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">init_embedding_type</span> =
+    
+    <a class="headerLink" href="#init_embedding_type" title="dire_jax.dire.DiRe.init_embedding_type">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.layout">
+    
+  </a>
+  <a name="layout">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">layout</span> =
+    
+    <a class="headerLink" href="#layout" title="dire_jax.dire.DiRe.layout">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.logger">
+    
+  </a>
+  <a name="logger">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">logger</span> =
+    
+    <a class="headerLink" href="#logger" title="dire_jax.dire.DiRe.logger">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.max_iter_layout">
+    
+  </a>
+  <a name="max_iter_layout">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">max_iter_layout</span> =
+    
+    <a class="headerLink" href="#max_iter_layout" title="dire_jax.dire.DiRe.max_iter_layout">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.min_dist">
+    
+  </a>
+  <a name="min_dist">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">min_dist</span> =
+    
+    <a class="headerLink" href="#min_dist" title="dire_jax.dire.DiRe.min_dist">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.n_neighbors">
+    
+  </a>
+  <a name="n_neighbors">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">n_neighbors</span> =
+    
+    <a class="headerLink" href="#n_neighbors" title="dire_jax.dire.DiRe.n_neighbors">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.n_sample_dirs">
+    
+  </a>
+  <a name="n_sample_dirs">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">n_sample_dirs</span> =
+    
+    <a class="headerLink" href="#n_sample_dirs" title="dire_jax.dire.DiRe.n_sample_dirs">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.n_samples">
+    
+  </a>
+  <a name="n_samples">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">n_samples</span> =
+    
+    <a class="headerLink" href="#n_samples" title="dire_jax.dire.DiRe.n_samples">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.nearest_neighbor_distances">
+    
+  </a>
+  <a name="nearest_neighbor_distances">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">nearest_neighbor_distances</span> =
+    
+    <a class="headerLink" href="#nearest_neighbor_distances" title="dire_jax.dire.DiRe.nearest_neighbor_distances">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.neg_ratio">
+    
+  </a>
+  <a name="neg_ratio">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">neg_ratio</span> =
+    
+    <a class="headerLink" href="#neg_ratio" title="dire_jax.dire.DiRe.neg_ratio">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.pca_kernel">
+    
+  </a>
+  <a name="pca_kernel">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">pca_kernel</span> =
+    
+    <a class="headerLink" href="#pca_kernel" title="dire_jax.dire.DiRe.pca_kernel">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.row_idx">
+    
+  </a>
+  <a name="row_idx">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">row_idx</span> =
+    
+    <a class="headerLink" href="#row_idx" title="dire_jax.dire.DiRe.row_idx">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.sample_size">
+    
+  </a>
+  <a name="sample_size">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">sample_size</span> =
+    
+    <a class="headerLink" href="#sample_size" title="dire_jax.dire.DiRe.sample_size">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.sim_kernel">
+    
+  </a>
+  <a name="sim_kernel">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">sim_kernel</span> =
+    
+    <a class="headerLink" href="#sim_kernel" title="dire_jax.dire.DiRe.sim_kernel">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.spread">
+    
+  </a>
+  <a name="spread">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">spread</span> =
+    
+    <a class="headerLink" href="#spread" title="dire_jax.dire.DiRe.spread">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div>
+        </div>
+      
+      </div>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container-fluid">
+    <a href="index.html">API Documentation</a> for dire_jax,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    24.11.2 at 2025-02-22 19:00:38.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

@@ -1,5 +1,8 @@
 # dire.py
 
+"""
+Provides the main class for dimension reduction
+"""
 
 #
 # Imports

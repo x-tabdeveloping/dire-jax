@@ -1,5 +1,5 @@
 jax
-faiss-cpu
+faiss
 numpy
 scipy
 tqdm

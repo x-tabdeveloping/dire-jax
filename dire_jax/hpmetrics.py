@@ -1,5 +1,9 @@
 # hpmetrics.py
 
+"""
+Auxiliary functions for high-performance benchmarking metrics
+"""
+
 #
 # Imports
 #
