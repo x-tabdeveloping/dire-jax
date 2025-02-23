@@ -123,39 +123,68 @@ class DiRe:
                  neg_ratio=8,
                  my_logger=None,
                  verbose=True):
+        """
+        Class constructor
+        """
+
         #
         self.dimension = dimension
+        """ Embedding dimension """
         self.n_neighbors = n_neighbors
+        """ Number of neighbors for kNN computations"""
         self.init_embedding_type = init_embedding_type
+        """ Type of the initial embedding (PCA, random, spectral) """
         self.sim_kernel = sim_kernel
+        """ Similarity kernel """
         self.pca_kernel = pca_kernel
+        """ PCA kernel """
         self.max_iter_layout = max_iter_layout
+        """ Max iterations for the force layout """
         self.min_dist = min_dist
+        """ Min distance between points in layout """
         self.spread = spread
+        """ Layout spread """
         self.cutoff = cutoff
+        """ Cutoff for layout displacement """
         self.n_sample_dirs = n_sample_dirs
+        """ Number of sampling directions for layout"""
         self.sample_size = sample_size
+        """ Sample size for attraction """
         self.neg_ratio = neg_ratio
-        #
+        """ Ratio for repulsion sample size """
         self.init_embedding = None
+        """ Initial embedding """
         self.layout = None
+        """ Layout output """
         self.a = None
+        """ Probability kernel parameter """
         self.b = None
+        """ Probability kernel parameter """
         self.data = None
+        """ Higher-dimensional data """
         self.n_samples = None
+        """ Number of data points """
         self.data_dim = None
+        """ Dimension of data """
         self.distances = None
+        """ Distances in the kNN graph """
         self.indices = None
+        """ Neighbor indices in the kNN graph """
         self.nearest_neighbor_distances = None
+        """ Neighbor indices in the kNN graph, excluding the point itself """
         self.row_idx = None
+        """ Row indices for nearest neighbors """
         self.col_idx = None
+        """ Column indices for nearest neighbors """
         self.adjacency = None
+        """ kNN adjacency matrix """
         #
         if my_logger is None:
             logger.remove()
             sink = sys.stdout if verbose else open(os.devnull, 'w')
             logger.add(sink, level="INFO")
             self.logger = logger
+            """ System logger """
         else:
             self.logger = my_logger
 
@@ -164,10 +193,12 @@ class DiRe:
     #
 
     def find_ab_params(self, min_dist=0.01, spread=1.0):
+        """
+        Rational function approximation to the probabilistic t-kernel
+        """
+
         #
         self.logger.info('find_ab_params ...')
-
-        # Rational function approximation to the probabilistic t-kernel
 
         def curve(x, a, b):
             return 1.0 / (1.0 + a * x ** (2 * b))
@@ -280,6 +311,9 @@ class DiRe:
     #
 
     def make_knn_adjacency(self):
+        """
+        Internal routine building the adjacency matrix for the kNN graph
+        """
         #
         self.logger.info('make_knn_adjacency ...')
         #
@@ -322,6 +356,9 @@ class DiRe:
     #
 
     def do_pca_embedding(self):
+        """
+        Internal routine for initial PCA embedding
+        """
         #
         self.logger.info('do_pca_embedding ...')
         #
@@ -342,6 +379,9 @@ class DiRe:
     #
 
     def do_spectral_embedding(self):
+        """
+        Internal routine for initial spectral embedding
+        """
         #
         self.logger.info('do_spectral_embedding ...')
         #
@@ -363,6 +403,9 @@ class DiRe:
     #
 
     def do_random_embedding(self):
+        """
+        Internal routine for initial random projections embedding
+        """
         #
         self.logger.info('do_random_embedding ...')
         #
@@ -384,6 +427,12 @@ class DiRe:
     #
 
     def do_rand_sampling(self, key, arr, n_samples, n_dirs, neg_ratio):
+        """
+        Random sampling of the closest n_samples by using random
+        projections in n_dirs directions. Negative samples are
+        added at the ratio of neg_ratio negative samples for each
+        positive sample taken.
+        """
         #
         self.logger.info('do_rand_sampling ...')
         #
@@ -412,6 +461,9 @@ class DiRe:
     #
 
     def do_layout(self):
+        """
+        Internal routine for creating the lower-dimensional layout
+        """
         #
         self.logger.info('do_layout ...')
         #
@@ -552,6 +604,9 @@ class DiRe:
 #
 @functools.partial(jit, static_argnums=(1, 2))
 def distribution_kernel(x, a, b):
+    """
+    Probability kernel
+    """
     return 1.0 / (1.0 + a * x ** (2 * b))
 
 
@@ -560,6 +615,9 @@ def distribution_kernel(x, a, b):
 #
 @functools.partial(jit, static_argnums=(1, 2))
 def grad_coeff_att(x, a, b):
+    """
+    Attraction force
+    """
     y = distribution_kernel(1.0 / x, a, b)
     return 1.0 * y
 
@@ -569,6 +627,9 @@ def grad_coeff_att(x, a, b):
 #
 @functools.partial(jit, static_argnums=(1, 2))
 def grad_coeff_rep(x, a, b):
+    """
+    Repulsion force
+    """
     y = distribution_kernel(x, a, b)
     return -1.0 * y
 
@@ -578,6 +639,9 @@ def grad_coeff_rep(x, a, b):
 #
 @functools.partial(jit, static_argnums=(1, 2))
 def rand_directions(key, dim=2, num=100):
+    """
+    Sampling random directions
+    """
     points = random.normal(key, (num, dim))
     norms = jnp.sqrt(jnp.sum(points * points, axis=-1))
     return points / norms[:, None]
@@ -588,6 +652,9 @@ def rand_directions(key, dim=2, num=100):
 #
 @functools.partial(jit, static_argnums=(1,))
 def get_slice(arr, k, i):
+    """
+    Dynamic slice around i of (almost) k elements
+    """
     return lax.dynamic_slice(arr, (i - k // 2,), (k,))
 
 
@@ -595,5 +662,8 @@ def get_slice(arr, k, i):
 # Vectorized versions of the above functions
 #
 vmap_coeff_att = vmap(grad_coeff_att, in_axes=(0, None, None))
+""" Vectorized grad_coeff_att """
 vmap_coeff_rep = vmap(grad_coeff_rep, in_axes=(0, None, None))
+""" Vectorized grad_coeff_rep """
 vmap_get_slice = vmap(get_slice, in_axes=(None, None, 0))
+""" Vectorized get_slice """
