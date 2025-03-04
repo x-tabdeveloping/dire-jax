@@ -29,7 +29,7 @@ from .hpmetrics import (compute_local_metrics,
 #
 # Display a given layout with labels and with given point size
 #
-def display_layout(layout, labels, point_size):
+def display_layout(layout, labels, point_size=2):
     """
     Parameters
     ----------

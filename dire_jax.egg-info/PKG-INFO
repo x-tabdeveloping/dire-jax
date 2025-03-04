@@ -1,3 +1,32 @@
+Metadata-Version: 2.1
+Name: dire-jax
+Version: 0.0.8
+Summary: A JAX-based Dimension Reducer
+Author: Alexander Kolpakov, Igor Rivin
+Author-email: akolpakov@uaustin.org, rivin@temple.edu
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: jax
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: tqdm
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: kaleido
+Requires-Dist: loguru
+Requires-Dist: ripser
+Requires-Dist: fastdtw
+Requires-Dist: pytwed
+Requires-Dist: pot
+Requires-Dist: scikit-learn
+Provides-Extra: cpu
+Requires-Dist: faiss-cpu; extra == "cpu"
+Provides-Extra: gpu
+
 # DiRe - JAX
 
 ### A new DImensionality REduction package written in JAX 

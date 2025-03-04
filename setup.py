@@ -6,8 +6,8 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name='dire',
-    version='0.0.1',
+    name='dire-jax',
+    version='0.0.8',
     author='Alexander Kolpakov, Igor Rivin',
     author_email='akolpakov@uaustin.org, rivin@temple.edu',
     description='A JAX-based Dimension Reducer',
@@ -16,12 +16,11 @@ setup(
     packages=find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
-        'License :: Apache-2.0 license',
+        'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         ],
     python_requires='>=3.7',
     install_requires=['jax',
-                      'faiss-cpu',
                       'numpy',
                       'scipy',
                       'tqdm',
@@ -33,5 +32,9 @@ setup(
                       'fastdtw',
                       'pytwed',
                       'pot',
-                      'scikit-learn']
+                      'scikit-learn'],
+    extras_require={
+        'cpu': ['faiss-cpu'],
+        'gpu': []  # GPU users must install faiss-gpu via conda
+    },
 )
