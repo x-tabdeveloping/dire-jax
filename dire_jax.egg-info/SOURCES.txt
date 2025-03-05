@@ -1,5 +1,4 @@
 LICENSE
-MANIFEST.in
 README.md
 setup.py
 dire_jax/__init__.py
@@ -11,4 +10,3 @@ dire_jax.egg-info/SOURCES.txt
 dire_jax.egg-info/dependency_links.txt
 dire_jax.egg-info/requires.txt
 dire_jax.egg-info/top_level.txt
-images/blobs_layout.png

@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='dire-jax',
-    version='0.0.8',
+    version='0.0.0',
     author='Alexander Kolpakov, Igor Rivin',
     author_email='akolpakov@uaustin.org, rivin@temple.edu',
     description='A JAX-based Dimension Reducer',
