@@ -58,15 +58,15 @@ display_layout(layout_blobs, labels_blobs)
 
 ```
 
-<!--The output should look similar to-->
+The output should look similar to
 
-<!--![12 blobs with 100k points in 1k dimensions embedded in dimension 2](images/blobs_layout.png)-->
+![12 blobs with 100k points in 1k dimensions embedded in dimension 2](images/blobs_layout.png)
 
 
-<!--### Working paper-->
+### Working paper
 
-<!--Our working paper is available in the repository. Also, check out the Jupyter notebook with benchmarking results. -->
+Our working paper is available in the repository. Also, check out the Jupyter notebook with benchmarking results.
 
-<!--### Contributing-->
+### Contributing
 
-<!--Create a fork, contribute, and make a merge request. Thanks!-->
+Create a fork, contribute, and make a merge request. Thanks!
