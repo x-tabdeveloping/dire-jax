@@ -70,3 +70,7 @@ Our working paper is available in the repository. Also, check out the Jupyter no
 ### Contributing
 
 Create a fork, contribute, and make a merge request. Thanks!
+
+### Acknowledgement 
+
+This work is supported by the Google Cloud Research Award number GCP19980904.
