@@ -4,15 +4,17 @@ scipy
 tqdm
 pandas
 plotly
-kaleido
 loguru
-ripser
-fastdtw
-pytwed
-pot
 scikit-learn
 
 [cpu]
 faiss-cpu
 
 [gpu]
+
+[utils]
+ripser
+persim
+fastdtw
+pytwed
+pot

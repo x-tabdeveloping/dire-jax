@@ -661,9 +661,12 @@ def get_slice(arr, k, i):
 #
 # Vectorized versions of the above functions
 #
-vmap_coeff_att = vmap(grad_coeff_att, in_axes=(0, None, None))
+
 """ Vectorized grad_coeff_att """
-vmap_coeff_rep = vmap(grad_coeff_rep, in_axes=(0, None, None))
+vmap_coeff_att = vmap(grad_coeff_att, in_axes=(0, None, None))
+
 """ Vectorized grad_coeff_rep """
-vmap_get_slice = vmap(get_slice, in_axes=(None, None, 0))
+vmap_coeff_rep = vmap(grad_coeff_rep, in_axes=(0, None, None))
+
 """ Vectorized get_slice """
+vmap_get_slice = vmap(get_slice, in_axes=(None, None, 0))
