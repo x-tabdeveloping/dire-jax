@@ -20,5 +20,5 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint --disable=import-error --disable=duplicate-code --output-format=colorized $(git ls-files '*.py' | grep -v 'setup.py')
+        pylint --disable=import-error --disable=duplicate-code --output-format=colorized --rcfile=.pylintrc $(git ls-files '*.py' | grep -v 'setup.py')
 
