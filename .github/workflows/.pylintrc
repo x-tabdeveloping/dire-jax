@@ -1,8 +1,8 @@
 [FORMAT]
-max-line-length=120  # Allow longer lines
+max-line-length=128  # Longer lines
 
 [DESIGN]
-max-locals=25        # Allow up to 25 local variables per function
-max-statements=80     # Allow up to 80 statements per function
-max-args=8           # Allow up to 8 arguments per function
-max-positional-args=8 # Allow more positional arguments
+max-locals=16        # Variables per function
+max-statements=64    # Statements per function
+max-args=8           # Arguments per function
+
