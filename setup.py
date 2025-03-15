@@ -1,5 +1,5 @@
-from setuptools import setup, find_packages
 from pathlib import Path
+from setuptools import setup, find_packages
 
 # Read the long description from README.md
 this_directory = Path(__file__).parent
@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 # Comment on GPU extra vs CPU extra
 print("For CPU, use [cpu] extra, and faiss-cpu will be installed automatically via pip.")
-print("For GPU, use [gpu] extra, and manually install faiss-gpu via conda (`conda install -c pytorch faiss-gpu`).")
+print("For GPU, use [gpu] extra, and manually install faiss-gpu via conda.")
 
 # Comment on utils extra
 print("For benchmarking, metrics and utilities, use [utils] extra.")
