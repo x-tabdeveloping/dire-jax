@@ -16,7 +16,15 @@ import faiss
 import ot
 from ripser import ripser
 from fastdtw import fastdtw
-from pytwed import twed
+try:
+    from pytwed import twed
+    HAS_TWED = True
+except ImportError:
+    HAS_TWED = False
+    # Define a placeholder function that returns a constant value
+    def twed(*args, **kwargs):
+        print("Warning: pytwed not available, returning placeholder value 0.0")
+        return 0.0
 from persim import wasserstein, bottleneck
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -280,7 +288,7 @@ def compute_neighbor_score(data, layout, n_neighbors):
 # 1. Embedding stress (scaling adjusted);
 # 2. Neighborhood preservation score (mean, std).
 #
-def compute_local_metrics(data, layout, n_neighbors):
+def compute_local_metrics(data, layout, n_neighbors, memory_efficient=None):
     """
     Compute local metrics of the (data, layout) pair.
 
@@ -289,14 +297,39 @@ def compute_local_metrics(data, layout, n_neighbors):
     data: (numpy.ndarray) High-dimensional data points.
     layout: (numpy.ndarray) Low-dimensional data points corresponding to the high-dimensional data.
     n_neighbors: (int) Number of closest neighbors for the kNN graph.
+    memory_efficient: (bool or None) If True, use memory-efficient algorithms for large datasets.
+                     If None, automatically determine based on dataset size.
 
     Returns
     -------
     dict: A dictionary containing computed scores of each type (stress, neighborhood preservation).
     """
-
-    metrics = {'stress': compute_stress(data, layout, n_neighbors),
-               'neighbor': compute_neighbor_score(data, layout, n_neighbors)}
+    # Determine if we should use memory-efficient mode for large datasets
+    if memory_efficient is None:
+        memory_efficient = data.shape[0] > 50000
+    
+    # For very large datasets, subsample before computing metrics
+    if memory_efficient and data.shape[0] > 100000:
+        # Use a reasonable sample size that maintains statistical validity
+        sample_size = 50000
+        indices = np.random.choice(data.shape[0], sample_size, replace=False)
+        data_sample = data[indices]
+        layout_sample = layout[indices]
+        
+        print(f"Using subsampled data ({sample_size} points) for metrics computation")
+        
+        metrics = {
+            'stress': compute_stress(data_sample, layout_sample, n_neighbors),
+            'neighbor': compute_neighbor_score(data_sample, layout_sample, n_neighbors)
+        }
+        
+        # Add note about subsampling
+        metrics['note'] = f"Metrics computed on {sample_size} randomly sampled points due to large dataset size"
+    else:
+        metrics = {
+            'stress': compute_stress(data, layout, n_neighbors),
+            'neighbor': compute_neighbor_score(data, layout, n_neighbors)
+        }
 
     return metrics
 

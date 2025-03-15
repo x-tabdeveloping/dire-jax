@@ -348,7 +348,7 @@ class DiRe:
     # Computing the kNN adjacency matrix (sparse)
     #
 
-    def make_knn_adjacency(self):
+    def make_knn_adjacency(self, batch_size=None):
         """
         Internal routine building the adjacency matrix for the kNN graph.
         
@@ -356,6 +356,14 @@ class DiRe:
         and constructs a sparse adjacency matrix representing the kNN graph.
         It attempts to use GPU acceleration if available, with a fallback to CPU.
         
+        For large datasets, it uses batching to limit memory usage.
+        
+        Parameters
+        ----------
+        batch_size : int or None, optional
+            Number of samples to process at once. If None, a suitable value 
+            will be automatically determined based on dataset size.
+            
         The method sets the following instance attributes:
         - distances: Distances to the k nearest neighbors (including self)
         - indices: Indices of the k nearest neighbors (including self)
@@ -369,6 +377,18 @@ class DiRe:
         self.data = np.ascontiguousarray(self.data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
         data_dim = self.data.shape[1]
+        
+        # Determine appropriate batch size for memory efficiency
+        if batch_size is None:
+            # Heuristic: For very large datasets, use smaller batches
+            if self.n_samples > 100000:
+                batch_size = 10000
+            elif self.n_samples > 10000:
+                batch_size = 5000
+            else:
+                batch_size = self.n_samples  # Process all at once for small datasets
+                
+        self.logger.info(f'Using batch size: {batch_size}')
 
         # Try to use GPU for kNN search, fall back to CPU if necessary
         try:
@@ -377,6 +397,8 @@ class DiRe:
             
             if gpu_available:
                 res = faiss.StandardGpuResources()
+                # Limit GPU memory usage
+                res.setTempMemory(1024 * 1024 * 1024)  # 1GB limit
                 index = faiss.GpuIndexFlatL2(res, data_dim)
                 self.logger.info('Using GPU for kNN search')
             else:
@@ -391,8 +413,29 @@ class DiRe:
         # Add data points to the index
         index.add(self.data)
         
-        # Search for k nearest neighbors
-        self.distances, self.indices = index.search(self.data, n_neighbors)
+        # Initialize arrays for batch processing
+        all_distances = np.zeros((self.n_samples, n_neighbors), dtype=np.float32)
+        all_indices = np.zeros((self.n_samples, n_neighbors), dtype=np.int32)
+        
+        # Process in batches to limit memory usage
+        for i in range(0, self.n_samples, batch_size):
+            # Determine end of current batch
+            end_idx = min(i + batch_size, self.n_samples)
+            batch_data = self.data[i:end_idx]
+            
+            # Search for k nearest neighbors for this batch
+            batch_distances, batch_indices = index.search(batch_data, n_neighbors)
+            
+            # Store results
+            all_distances[i:end_idx] = batch_distances
+            all_indices[i:end_idx] = batch_indices
+            
+            # Manual garbage collection after each batch to free memory
+            gc.collect()
+        
+        # Store results
+        self.distances = all_distances
+        self.indices = all_indices
         
         # Extract nearest neighbor distances (excluding self)
         self.nearest_neighbor_distances = self.distances[:, 1]
@@ -401,7 +444,7 @@ class DiRe:
         self.row_idx = np.repeat(np.arange(self.n_samples), n_neighbors)
         self.col_idx = self.indices.ravel()
         
-        # Create sparse adjacency matrix
+        # Create sparse adjacency matrix (memory efficient)
         data_values = self.distances.ravel()
         self.adjacency = csr_matrix(
             (data_values, (self.row_idx, self.col_idx)), 
@@ -409,7 +452,7 @@ class DiRe:
         )
 
         # Clean up resources
-        del index
+        del index, all_distances, all_indices
         gc.collect()
         
         self.logger.info('make_knn_adjacency done ...')
@@ -607,7 +650,7 @@ class DiRe:
     # Create layout using force-directed optimization
     #
 
-    def do_layout(self):
+    def do_layout(self, large_dataset_mode=None, force_cpu=False):
         """
         Optimize the layout using force-directed placement.
         
@@ -620,6 +663,15 @@ class DiRe:
         3. Gradual cooling (decreasing force impact) as iterations progress
         
         The final layout is normalized to have zero mean and unit standard deviation.
+        
+        Parameters
+        ----------
+        large_dataset_mode : bool or None, optional
+            If True, use memory-efficient techniques for large datasets.
+            If None, automatically determine based on dataset size.
+        force_cpu : bool, optional
+            If True, force computations on CPU instead of GPU, which can 
+            be helpful for large datasets that exceed GPU memory.
         """
         self.logger.info('do_layout ...')
         
@@ -635,12 +687,27 @@ class DiRe:
             # Ensure batch size is reasonable (not too small or large)
             batch_size = max(min(512, batch_size), 32)
 
+        # Determine if we should use memory-efficient mode for large datasets
+        if large_dataset_mode is None:
+            large_dataset_mode = self.n_samples > 50000
+            
+        if large_dataset_mode:
+            self.logger.info("Using memory-efficient mode for large dataset")
+
         # Other parameters
         n_dirs = self.n_sample_dirs
         neg_ratio = self.neg_ratio
 
         # Initialize and normalize positions
-        init_pos_jax = device_put(self.init_embedding)
+        if force_cpu:
+            self.logger.info("Forcing computations on CPU")
+            # Keep on CPU for larger datasets that might not fit in GPU memory
+            import jax
+            with jax.default_device(jax.devices('cpu')[0]):
+                init_pos_jax = device_put(self.init_embedding)
+        else:
+            init_pos_jax = device_put(self.init_embedding)
+            
         init_pos_jax -= init_pos_jax.mean(axis=0)  # Center positions
         init_pos_jax /= init_pos_jax.std(axis=0)   # Normalize variance
 
@@ -663,70 +730,54 @@ class DiRe:
                 neg_ratio
             )
             indices_emb_jax = device_put(indices_emb_jax)
-
-            # ===== Attraction Forces =====
-            # Points are attracted to their high-dimensional neighbors
             
-            # Prepare positions and compute distances
-            v_pos = init_pos_jax[:, None, :]  # Shape: [n_samples, 1, dimension]
-            u_pos = init_pos_jax[indices_jax]  # Shape: [n_samples, n_neighbors, dimension]
-            
-            # Compute position differences and distances
-            position_diff = u_pos - v_pos
-            distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
-            
-            # Create mask to avoid division by zero
-            mask = (distance_geom > 0)
-            
-            # Compute normalized direction vectors
-            direction = jnp.where(mask, position_diff / distance_geom, 0.0)
-
-            # Compute attraction forces with repulsion term
-            # The repulsion term ensures that high-dimensional neighbors
-            # aren't also pushed apart by the general repulsion phase
-            grad_coeff_att_vals = jnp.where(
-                mask,
-                1.0 * vmap_coeff_att(distance_geom, self.a, self.b) - 
-                1.0 * vmap_coeff_rep(distance_geom, self.a, self.b),
-                0.0
-            )
-            
-            # Sum forces from all neighbors for each point
-            attraction_force = jnp.sum(grad_coeff_att_vals * direction, axis=1)
-
-            # ===== Repulsion Forces =====
-            # Points are repelled from randomly sampled points
-            
-            # Use sampled indices for repulsion
-            u_pos = init_pos_jax[indices_emb_jax]
-            position_diff = u_pos - v_pos  # Reuse v_pos
-            distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
-            
-            # Create mask for non-zero distances
-            mask = (distance_geom > 0)
-            direction = jnp.where(mask, position_diff / distance_geom, 0.0)
-
-            # Compute repulsion forces
-            grad_coeff_rep_vals = jnp.where(
-                mask,
-                vmap_coeff_rep(distance_geom, self.a, self.b),
-                0.0
-            )
-            repulsion_force = jnp.sum(grad_coeff_rep_vals * direction, axis=1)
-
-            # ===== Combine Forces and Update Positions =====
-            
-            # Apply cooling factor (alpha) that decreases with iterations
-            alpha = 1.0 - iter_id / num_iterations
-            
-            # Combine attraction and repulsion
-            net_force = alpha * (attraction_force + repulsion_force)
+            # Split computation for memory efficiency if needed
+            if large_dataset_mode and self.n_samples > 100000:
+                # Process in chunks to reduce peak memory usage
+                chunk_size = min(20000, self.n_samples)
+                all_forces = []
+                
+                for chunk_start in range(0, self.n_samples, chunk_size):
+                    chunk_end = min(chunk_start + chunk_size, self.n_samples)
+                    chunk_indices = slice(chunk_start, chunk_end)
+                    
+                    # Process this chunk
+                    chunk_force = self._compute_forces(
+                        init_pos_jax,
+                        indices_jax[chunk_indices],
+                        indices_emb_jax[chunk_indices],
+                        alpha=1.0 - iter_id / num_iterations
+                    )
+                    
+                    all_forces.append(chunk_force)
+                    
+                    # Explicitly clean up to reduce memory pressure
+                    gc.collect()
+                
+                # Combine results from all chunks
+                net_force = jnp.concatenate(all_forces, axis=0)
+                
+            else:
+                # Process all points at once for smaller datasets
+                net_force = self._compute_forces(
+                    init_pos_jax, 
+                    indices_jax, 
+                    indices_emb_jax,
+                    alpha=1.0 - iter_id / num_iterations
+                )
             
             # Clip forces to prevent extreme movements
             net_force = jnp.clip(net_force, -cutoff, cutoff)
             
             # Update positions
             init_pos_jax += net_force
+            
+            # Ensure we're not accumulating unnecessary computation graphs in JAX
+            init_pos_jax = device_put(np.asarray(init_pos_jax))
+            
+            # Periodically free memory
+            if iter_id % 10 == 0:
+                gc.collect()
 
         # Normalize final layout
         init_pos_jax -= init_pos_jax.mean(axis=0)
@@ -735,7 +786,87 @@ class DiRe:
         # Store final layout
         self.layout = np.asarray(init_pos_jax)
         
+        # Clear any cached values to free memory
+        gc.collect()
+        
         self.logger.info('do_layout done ...')
+        
+    def _compute_forces(self, positions, neighbor_indices, sample_indices, alpha=1.0):
+        """
+        Compute attractive and repulsive forces for points.
+        
+        This is an internal helper method used by do_layout to compute the
+        forces that determine how points move during optimization.
+        
+        Parameters
+        ----------
+        positions : jax.numpy.ndarray
+            Current point positions
+        neighbor_indices : jax.numpy.ndarray
+            Indices of neighbors for attractive forces
+        sample_indices : jax.numpy.ndarray
+            Indices of points for repulsive forces
+        alpha : float
+            Cooling factor that scales force magnitude
+            
+        Returns
+        -------
+        jax.numpy.ndarray
+            Net force vectors for each point
+        """
+        # ===== Attraction Forces =====
+        # Points are attracted to their high-dimensional neighbors
+        
+        # Prepare positions and compute distances
+        v_pos = positions[:, None, :]  # Shape: [n_samples, 1, dimension]
+        u_pos = positions[neighbor_indices]  # Shape: [n_samples, n_neighbors, dimension]
+        
+        # Compute position differences and distances
+        position_diff = u_pos - v_pos
+        distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
+        
+        # Create mask to avoid division by zero
+        mask = (distance_geom > 0)
+        
+        # Compute normalized direction vectors
+        direction = jnp.where(mask, position_diff / distance_geom, 0.0)
+
+        # Compute attraction forces with repulsion term
+        # The repulsion term ensures that high-dimensional neighbors
+        # aren't also pushed apart by the general repulsion phase
+        grad_coeff_att_vals = jnp.where(
+            mask,
+            1.0 * vmap_coeff_att(distance_geom, self.a, self.b) - 
+            1.0 * vmap_coeff_rep(distance_geom, self.a, self.b),
+            0.0
+        )
+        
+        # Sum forces from all neighbors for each point
+        attraction_force = jnp.sum(grad_coeff_att_vals * direction, axis=1)
+
+        # ===== Repulsion Forces =====
+        # Points are repelled from randomly sampled points
+        
+        # Use sampled indices for repulsion
+        u_pos = positions[sample_indices]
+        position_diff = u_pos - v_pos  # Reuse v_pos
+        distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
+        
+        # Create mask for non-zero distances
+        mask = (distance_geom > 0)
+        direction = jnp.where(mask, position_diff / distance_geom, 0.0)
+
+        # Compute repulsion forces
+        grad_coeff_rep_vals = jnp.where(
+            mask,
+            vmap_coeff_rep(distance_geom, self.a, self.b),
+            0.0
+        )
+        repulsion_force = jnp.sum(grad_coeff_rep_vals * direction, axis=1)
+
+        # ===== Combine Forces =====
+        # Combine attraction and repulsion, with cooling factor alpha
+        return alpha * (attraction_force + repulsion_force)
 
     #
     # Visualize the layout
