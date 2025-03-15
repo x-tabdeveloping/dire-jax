@@ -4,9 +4,9 @@ Test runner for DiRe package unit tests.
 Run this script from the root directory of the project.
 """
 
-import unittest
 import sys
 import os
+import unittest
 
 # Add the parent directory to sys.path so that the imports work
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

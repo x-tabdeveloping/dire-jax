@@ -16,15 +16,7 @@ import faiss
 import ot
 from ripser import ripser
 from fastdtw import fastdtw
-try:
-    from pytwed import twed
-    HAS_TWED = True
-except ImportError:
-    HAS_TWED = False
-    # Define a placeholder function that returns a constant value
-    def twed(*args, **kwargs):
-        print("Warning: pytwed not available, returning placeholder value 0.0")
-        return 0.0
+from pytwed import twed
 from persim import wasserstein, bottleneck
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler

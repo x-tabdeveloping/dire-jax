@@ -14,10 +14,14 @@ high-dimensional data.
 # Imports
 #
 
+import sys
+import os
+import gc
+import functools
+
 # JAX-related imports
 from jax import jit, lax, vmap, random, device_put
 import jax.numpy as jnp
-import functools
 
 # Scientific and numerical libraries
 import numpy as np
@@ -33,9 +37,6 @@ import plotly.express as px
 
 # Utilities
 from tqdm import tqdm
-import gc
-import sys
-import os
 from loguru import logger
 
 # Nearest neighbor search

@@ -3,7 +3,6 @@
 Simple test of DiRe with timing.
 """
 
-import numpy as np
 import time
 from sklearn.datasets import make_blobs
 from dire_jax import DiRe

@@ -22,7 +22,8 @@ from .hpmetrics import (compute_local_metrics,
 
 
 #
-# Auxiliary functions for plotting, benchmarking, and miscellany that are not included in other packages and classes
+# Auxiliary functions for plotting, benchmarking, and miscellany
+# that are not included in other packages and classes
 #
 
 
@@ -52,9 +53,11 @@ def display_layout(layout, labels, point_size=2):
 
         if labels is not None:
             data_df['label'] = labels
-            figure = px.scatter(data_df, x='x', y='y', color='label', title=f'Layout in dimension {dimension}')
+            figure = px.scatter(data_df, x='x', y='y', color='label',
+                                title=f'Layout in dimension {dimension}')
         else:
-            figure = px.scatter(data_df, x='x', y='y', title=f'Layout in dimension {dimension}')
+            figure = px.scatter(data_df, x='x', y='y',
+                                title=f'Layout in dimension {dimension}')
 
         figure.update_traces(marker=dict(size=point_size))
         return figure
@@ -68,7 +71,8 @@ def display_layout(layout, labels, point_size=2):
             figure = px.scatter_3d(data_df, x='x', y='y', z='z', color='label',
                                    title=f'Layout in dimension {dimension}')
         else:
-            figure = px.scatter_3d(data_df, x='x', y='y', z='z', title=f'Layout in dimension {dimension}')
+            figure = px.scatter_3d(data_df, x='x', y='y', z='z',
+                                   title=f'Layout in dimension {dimension}')
 
         figure.update_traces(marker=dict(size=point_size))
         return figure
@@ -110,7 +114,7 @@ def do_local_analysis(data, layout, n_neighbors):
 def visualize_persistence_diagram(diagram, dimension, title):
     """
     Create a visualization of a persistence diagram.
-    
+
     Parameters
     ----------
     diagram : list of tuples
@@ -119,7 +123,7 @@ def visualize_persistence_diagram(diagram, dimension, title):
         Homology dimension of the diagram
     title : str
         Title for the visualization
-        
+
     Returns
     -------
     plotly.graph_objects.Figure
@@ -127,23 +131,23 @@ def visualize_persistence_diagram(diagram, dimension, title):
     """
     # Filter out points with infinite death time for visualization
     filtered_diagram = [(b, d) for b, d in diagram if not np.isinf(d)]
-    
+
     if not filtered_diagram:  # Handle empty diagrams
         return None
-    
+
     # Create dataframe for plotting
     df = pd.DataFrame(filtered_diagram, columns=['birth', 'death'])
-    
+
     # Calculate the persistence (death - birth) for each point
     df['persistence'] = df['death'] - df['birth']
-    
+
     # Calculate the diagonal line range for reference
     max_value = max(df['death'].max(), df['birth'].max()) * 1.05
     diagonal = pd.DataFrame({
         'x': [0, max_value],
         'y': [0, max_value]
     })
-    
+
     # Create the scatter plot
     fig = px.scatter(
         df, 
@@ -160,7 +164,7 @@ def visualize_persistence_diagram(diagram, dimension, title):
         },
         title=f"{title} (Dimension {dimension})"
     )
-    
+
     # Add the diagonal line
     fig.add_scatter(
         x=diagonal['x'],
@@ -170,7 +174,7 @@ def visualize_persistence_diagram(diagram, dimension, title):
         name='Diagonal',
         showlegend=True
     )
-    
+
     # Configure layout
     fig.update_layout(
         xaxis_title='Birth',
@@ -180,8 +184,9 @@ def visualize_persistence_diagram(diagram, dimension, title):
         height=600,
         width=600
     )
-    
+
     return fig
+
 
 #
 # Do persistence analysis: compute persistence diagrams and Betti curves, and find various distances between them.
@@ -240,21 +245,21 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
             dim, 
             "Low-dimensional Layout Persistence Diagram"
         )
-        
+
         if hd_diagram_fig is not None:
             hd_diagram_fig.show()
         if ld_diagram_fig is not None:
             ld_diagram_fig.show()
-        
+
         # Extracting and visualizing Betti curves
         axis_x_hd, axis_y_hd = bettis['data'][dim]
         axis_x_ld, axis_y_ld = bettis['layout'][dim]
-        
+
         # Normalising Betti curves for plotting
         # This ensures comparable scales regardless of filtration range
         axis_x_hd_, axis_y_hd_ = axis_x_hd / np.max(axis_x_hd), axis_y_hd
         axis_x_ld_, axis_y_ld_ = axis_x_ld / np.max(axis_x_ld), axis_y_ld
-        
+
         # Plotting normalized Betti curves
         df_hd = pd.DataFrame({
             'x': axis_x_hd_,
@@ -267,7 +272,7 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
             'Type': f'Betti {dim} Low-dimensional'
         })
         df = pd.concat([df_hd, df_ld])
-        
+
         figure = px.line(
             df, 
             x='x', 
@@ -447,12 +452,12 @@ def do_metrics(reducer, data, **kwargs):
                                    n_steps,
                                    metrics_only=True)
     mdict.update(gdict['metrics'])
-    
+
     # Add quality measures for the embedding
     from .hpmetrics import compute_quality_measures
     qdict = compute_quality_measures(data, layout)
     mdict.update(qdict)
-    
+
     # Add context measures if labels are provided
     labels = kwargs.pop('labels', None)
     if labels is not None:
@@ -464,7 +469,7 @@ def do_metrics(reducer, data, **kwargs):
                                          rng_key=rng_key,
                                          **kwargs)
         mdict.update(cdict)
-    
+
     return mdict
 
 

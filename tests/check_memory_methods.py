@@ -3,8 +3,8 @@
 Simple check of memory-efficient methods.
 """
 
-from dire_jax import DiRe
 import inspect
+from dire_jax import DiRe
 
 # Create reducer
 reducer = DiRe(dimension=2, n_neighbors=5)

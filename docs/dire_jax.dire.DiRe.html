@@ -245,6 +245,16 @@
             </div>
         
 
+    </li><li class="private">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#_compute_forces" class="internal-link" title="dire_jax.dire.DiRe._compute_forces">_compute<wbr></wbr>_forces</a></code>
+            </div>
+        
+
     </li>
 </ul> 
 
@@ -953,6 +963,11 @@ visualize(labels=None, point_size=2)
     <td>Instance Variable</td>
     <td><code><a href="#spread" class="internal-link" title="dire_jax.dire.DiRe.spread">spread</a></code></td>
     <td>Layout spread</td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><code><a href="#_compute_forces" class="internal-link" title="dire_jax.dire.DiRe._compute_forces">_compute<wbr></wbr>_forces</a></code></td>
+    <td>Compute attractive and repulsive forces for points.</td>
   </tr>
 </table>
           
@@ -997,7 +1012,7 @@ visualize(labels=None, point_size=2)
   <div class="functionHeader">
     
     
-    <span class="py-keyword">def</span> <span class="py-defname">do_layout</span><span class="function-signature">(self)</span>:
+    <span class="py-keyword">def</span> <span class="py-defname">do_layout</span><span class="function-signature">(self, large_dataset_mode=None, force_cpu=False)</span>:
     
     <a class="headerLink" href="#do_layout" title="dire_jax.dire.DiRe.do_layout">
       
@@ -1017,7 +1032,16 @@ representation of the high-dimensional data. The algorithm applies:
 2. Repulsion forces between randomly sampled points in the low-dimensional space
 3. Gradual cooling (decreasing force impact) as iterations progress
 
-The final layout is normalized to have zero mean and unit standard deviation.</p></div>
+The final layout is normalized to have zero mean and unit standard deviation.
+
+Parameters
+----------
+large_dataset_mode : bool or None, optional
+    If True, use memory-efficient techniques for large datasets.
+    If None, automatically determine based on dataset size.
+force_cpu : bool, optional
+    If True, force computations on CPU instead of GPU, which can 
+    be helpful for large datasets that exceed GPU memory.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -1275,7 +1299,7 @@ separately, as it avoids storing intermediate results.</p></div>
   <div class="functionHeader">
     
     
-    <span class="py-keyword">def</span> <span class="py-defname">make_knn_adjacency</span><span class="function-signature">(self)</span>:
+    <span class="py-keyword">def</span> <span class="py-defname">make_knn_adjacency</span><span class="function-signature">(self, batch_size=None)</span>:
     
     <a class="headerLink" href="#make_knn_adjacency" title="dire_jax.dire.DiRe.make_knn_adjacency">
       
@@ -1291,6 +1315,14 @@ This method computes the k-nearest neighbors for each point in the dataset
 and constructs a sparse adjacency matrix representing the kNN graph.
 It attempts to use GPU acceleration if available, with a fallback to CPU.
 
+For large datasets, it uses batching to limit memory usage.
+
+Parameters
+----------
+batch_size : int or None, optional
+    Number of samples to process at once. If None, a suitable value 
+    will be automatically determined based on dataset size.
+    
 The method sets the following instance attributes:
 - distances: Distances to the k nearest neighbors (including self)
 - indices: Indices of the k nearest neighbors (including self)
@@ -2024,6 +2056,49 @@ For both 2D and 3D, hover over points to see their coordinates and labels.</p></
     <div><p>Layout spread</p></div>
     
   </div>
+</div><div class="basemethod private">
+  
+  
+  <a name="dire_jax.dire.DiRe._compute_forces">
+    
+  </a>
+  <a name="_compute_forces">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_compute_forces</span><span class="function-signature">(self, positions, neighbor_indices, sample_indices, alpha=1.0)</span>:
+    
+    <a class="headerLink" href="#_compute_forces" title="dire_jax.dire.DiRe._compute_forces">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="pre">Compute attractive and repulsive forces for points.
+
+This is an internal helper method used by do_layout to compute the
+forces that determine how points move during optimization.
+
+Parameters
+----------
+positions : jax.numpy.ndarray
+    Current point positions
+neighbor_indices : jax.numpy.ndarray
+    Indices of neighbors for attractive forces
+sample_indices : jax.numpy.ndarray
+    Indices of points for repulsive forces
+alpha : float
+    Cooling factor that scales force magnitude
+    
+Returns
+-------
+jax.numpy.ndarray
+    Net force vectors for each point</p></div>
+  </div>
 </div>
         </div>
       
@@ -2036,7 +2111,7 @@ For both 2D and 3D, hover over points to see their coordinates and labels.</p></
   <div class="container-fluid">
     <a href="index.html">API Documentation</a> for DiRe JAX,
   generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
-    24.11.2 at 2025-03-15 14:33:20.
+    24.11.2 at 2025-03-15 18:21:45.
   </div>
 
   <!-- Search related scripts needs to be loaded at the end of HTML 
