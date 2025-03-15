@@ -32,7 +32,7 @@
       
       <div class="navlinks">
         <span class="navbar-brand">
-          dire_jax <a href="index.html">API Documentation</a>
+          DiRe JAX <a href="index.html">API Documentation</a>
         </span>
 
         <a href="moduleIndex.html">
@@ -760,7 +760,7 @@ visualize(labels=None, point_size=2)
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id3">
+          <table class="children sortable" id="id4">
   
   
   <tr class="method">
@@ -772,27 +772,27 @@ visualize(labels=None, point_size=2)
     
     <td>Method</td>
     <td><code><a href="#do_layout" class="internal-link" title="dire_jax.dire.DiRe.do_layout">do<wbr></wbr>_layout</a></code></td>
-    <td>Internal routine for creating the lower-dimensional layout</td>
+    <td>Optimize the layout using force-directed placement.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#do_pca_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_pca_embedding">do<wbr></wbr>_pca<wbr></wbr>_embedding</a></code></td>
-    <td>Internal routine for initial PCA embedding</td>
+    <td>Initialize embedding using Principal Component Analysis (PCA).</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#do_rand_sampling" class="internal-link" title="dire_jax.dire.DiRe.do_rand_sampling">do<wbr></wbr>_rand<wbr></wbr>_sampling</a></code></td>
-    <td>Random sampling of the closest n_samples by using random projections in n_dirs directions. Negative samples are added at the ratio of neg_ratio negative samples for each positive sample taken.</td>
+    <td>Sample points for force calculation using random projections.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#do_random_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_random_embedding">do<wbr></wbr>_random<wbr></wbr>_embedding</a></code></td>
-    <td>Internal routine for initial random projections embedding</td>
+    <td>Initialize embedding using Random Projection.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#do_spectral_embedding" class="internal-link" title="dire_jax.dire.DiRe.do_spectral_embedding">do<wbr></wbr>_spectral<wbr></wbr>_embedding</a></code></td>
-    <td>Internal routine for initial spectral embedding</td>
+    <td>Initialize embedding using Spectral Embedding.</td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -807,12 +807,12 @@ visualize(labels=None, point_size=2)
     
     <td>Method</td>
     <td><code><a href="#fit_transform" class="internal-link" title="dire_jax.dire.DiRe.fit_transform">fit<wbr></wbr>_transform</a></code></td>
-    <td>Fit the model to data and transform it into the low-dimensional layout.</td>
+    <td>Fit the model to data and transform it into a low-dimensional layout.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#make_knn_adjacency" class="internal-link" title="dire_jax.dire.DiRe.make_knn_adjacency">make<wbr></wbr>_knn<wbr></wbr>_adjacency</a></code></td>
-    <td>Internal routine building the adjacency matrix for the kNN graph</td>
+    <td>Internal routine building the adjacency matrix for the kNN graph.</td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -822,7 +822,7 @@ visualize(labels=None, point_size=2)
     
     <td>Method</td>
     <td><code><a href="#visualize" class="internal-link" title="dire_jax.dire.DiRe.visualize">visualize</a></code></td>
-    <td>Generate a visualization of the data in the transformed space using a scatter plot. Supports both 2D and 3D visualizations depending on the specified dimension.</td>
+    <td>Generate an interactive visualization of the data in the transformed space.</td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
@@ -1007,7 +1007,17 @@ visualize(labels=None, point_size=2)
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Internal routine for creating the lower-dimensional layout</p></div>
+    <div><p class="pre">Optimize the layout using force-directed placement.
+
+This method takes the initial embedding and iteratively refines it using
+attractive and repulsive forces to create a meaningful low-dimensional 
+representation of the high-dimensional data. The algorithm applies:
+
+1. Attraction forces between points that are neighbors in the high-dimensional space
+2. Repulsion forces between randomly sampled points in the low-dimensional space
+3. Gradual cooling (decreasing force impact) as iterations progress
+
+The final layout is normalized to have zero mean and unit standard deviation.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -1031,7 +1041,10 @@ visualize(labels=None, point_size=2)
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Internal routine for initial PCA embedding</p></div>
+    <div><p>Initialize embedding using Principal Component Analysis (PCA).</p>
+<p>This method creates an initial embedding of the data using PCA, which finds a linear projection of the high-dimensional data into a lower-dimensional space that maximizes the variance. If a kernel is specified, Kernel PCA is used instead, which can capture nonlinear relationships.</p>
+<p>Sets the init_embedding attribute with the PCA projection of the data.</p>
+</div>
   </div>
 </div><div class="basemethod">
   
@@ -1055,7 +1068,42 @@ visualize(labels=None, point_size=2)
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Random sampling of the closest n_samples by using random projections in n_dirs directions. Negative samples are added at the ratio of neg_ratio negative samples for each positive sample taken.</p></div>
+    <div><p class="pre">Sample points for force calculation using random projections.
+
+This method implements an efficient sampling strategy to identify points
+for applying attractive and repulsive forces during layout optimization.
+It uses random projections to quickly identify nearby points in different
+directions, and also adds random negative samples for repulsion.
+
+Parameters
+----------
+key : jax.random.PRNGKey
+    Random number generator key
+arr : jax.numpy.ndarray
+    Array of current point positions
+n_samples : int
+    Number of samples to take in each direction
+n_dirs : int
+    Number of random directions to sample
+neg_ratio : int
+    Ratio of negative samples to positive samples
+    
+Returns
+-------
+jax.numpy.ndarray
+    Array of sampled indices for force calculations
+    
+Notes
+-----
+The sampling strategy works as follows:
+1. Generate n_dirs random unit vectors
+2. Project the points onto each vector
+3. For each point, take the n_samples closest points in each direction
+4. Add random negative samples for repulsion
+5. Combine all sampled indices
+
+This approach is more efficient than a full nearest neighbor search
+while still capturing the important local relationships.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -1079,7 +1127,11 @@ visualize(labels=None, point_size=2)
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Internal routine for initial random projections embedding</p></div>
+    <div><p>Initialize embedding using Random Projection.</p>
+<p>This method creates an initial embedding of the data using random projection, which is a simple and computationally efficient technique for dimensionality reduction. It projects the data onto a randomly generated basis, providing a good starting point for further optimization.</p>
+<p>Random projection is supported by the Johnson-Lindenstrauss lemma, which guarantees that the distances between points are approximately preserved under certain conditions.</p>
+<p>Sets the init_embedding attribute with the random projection of the data.</p>
+</div>
   </div>
 </div><div class="basemethod">
   
@@ -1103,7 +1155,11 @@ visualize(labels=None, point_size=2)
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Internal routine for initial spectral embedding</p></div>
+    <div><p>Initialize embedding using Spectral Embedding.</p>
+<p>This method creates an initial embedding of the data using spectral embedding, which is based on the eigenvectors of the graph Laplacian. It relies on the kNN graph structure to find a lower-dimensional representation that preserves local relationships.</p>
+<p>If a similarity kernel is specified, it is applied to transform the distances in the adjacency matrix before computing the Laplacian.</p>
+<p>Sets the init_embedding attribute with the spectral embedding of the data.</p>
+</div>
   </div>
 </div><div class="basemethod">
   
@@ -1184,17 +1240,28 @@ self: The DiRe instance fitted to data.</p></div>
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="pre">Fit the model to data and transform it into the low-dimensional layout.
+    <div><p class="pre">Fit the model to data and transform it into a low-dimensional layout.
+
+This is a convenience method that combines the fitting and transformation
+steps. It first builds the kNN graph and then creates the optimized
+layout in a single operation.
 
 Parameters
 ----------
-data: (numpy.ndarray)
-    High-dimensional data to fit and transform. Shape (n_samples, n_features)
-
+data : numpy.ndarray
+    High-dimensional data to fit and transform.
+    Shape (n_samples, n_features)
+    
 Returns
 -------
-numpy.ndarray:
-    The lower-dimensional data embedding. Shape (n_samples, dimension)</p></div>
+numpy.ndarray
+    The lower-dimensional embedding of the data.
+    Shape (n_samples, dimension)
+    
+Notes
+-----
+This method is more memory-efficient than calling fit() and transform()
+separately, as it avoids storing intermediate results.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -1218,7 +1285,18 @@ numpy.ndarray:
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Internal routine building the adjacency matrix for the kNN graph</p></div>
+    <div><p class="pre">Internal routine building the adjacency matrix for the kNN graph.
+
+This method computes the k-nearest neighbors for each point in the dataset
+and constructs a sparse adjacency matrix representing the kNN graph.
+It attempts to use GPU acceleration if available, with a fallback to CPU.
+
+The method sets the following instance attributes:
+- distances: Distances to the k nearest neighbors (including self)
+- indices: Indices of the k nearest neighbors (including self)
+- nearest_neighbor_distances: Distances to the nearest neighbors (excluding self)
+- row_idx, col_idx: Indices for constructing the sparse adjacency matrix
+- adjacency: Sparse adjacency matrix of the kNN graph</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -1244,10 +1322,25 @@ numpy.ndarray:
     
     <div><p class="pre">Transform the fitted data into a lower-dimensional layout.
 
+This method applies the selected embedding initialization technique
+to the data that has already been fitted (creating the kNN graph), 
+and then optimizes the layout using force-directed placement.
+
+The transformation process involves:
+1. Creating an initial embedding using the specified method
+   (random projection, PCA, or spectral embedding)
+2. Optimizing the layout with attractive and repulsive forces
+
 Returns
 -------
-numpy.ndarray:
-    The lower-dimensional data embedding. Shape (n_samples, dimension).</p></div>
+numpy.ndarray
+    The lower-dimensional data embedding with shape (n_samples, dimension).
+    Points are arranged to preserve the local structure of the original data.
+    
+Raises
+------
+ValueError
+    If an unsupported embedding initialization method is specified.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -1261,7 +1354,7 @@ numpy.ndarray:
   <div class="functionHeader">
     
     
-    <span class="py-keyword">def</span> <span class="py-defname">visualize</span><span class="function-signature">(self, labels=None, point_size=2)</span>:
+    <span class="py-keyword">def</span> <span class="py-defname">visualize</span><span class="function-signature">(self, labels=None, point_size=2, title=None, colormap=None, width=800, height=600, opacity=0.7)</span>:
     
     <a class="headerLink" href="#visualize" title="dire_jax.dire.DiRe.visualize">
       
@@ -1271,20 +1364,41 @@ numpy.ndarray:
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="pre">Generate a visualization of the data in the transformed space using a scatter plot.
-Supports both 2D and 3D visualizations depending on the specified dimension.
+    <div><p class="pre">Generate an interactive visualization of the data in the transformed space.
+
+This method creates a scatter plot visualization of the embedded data, supporting
+both 2D and 3D visualizations depending on the specified dimension. Points can be
+colored by provided labels for clearer visualization of clusters or categories.
 
 Parameters
 ----------
-labels: (numpy.ndarray or `None`)
-    Labels for each data point to color the points in the visualization, default `None`.
-point_size: (int)
-    Size of points in the scatter plot, default 2.
-
+labels : numpy.ndarray or None, optional
+    Labels for each data point to color the points in the visualization.
+    If None, all points will have the same color. Default is None.
+point_size : int or float, optional
+    Size of points in the scatter plot. Default is 2.
+title : str or None, optional
+    Title for the visualization. If None, a default title will be used. Default is None.
+colormap : str or None, optional
+    Name of the colormap to use for labels (e.g., 'viridis', 'plasma'). 
+    If None, the default Plotly colormap will be used. Default is None.
+width : int, optional
+    Width of the figure in pixels. Default is 800.
+height : int, optional
+    Height of the figure in pixels. Default is 600.
+opacity : float, optional
+    Opacity of the points (0.0 to 1.0). Default is 0.7.
+    
 Returns
 -------
-plotly.graph_objs._figure.Figure or `None`:
-    A plotly figure object if the visualization is successful; None if no layout is available.</p></div>
+plotly.graph_objs._figure.Figure or None
+    A Plotly figure object if the visualization is successful; 
+    None if no layout is available or dimension &gt; 3.
+    
+Notes
+-----
+For 3D visualizations, you can rotate, zoom, and pan the plot interactively.
+For both 2D and 3D, hover over points to see their coordinates and labels.</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -1920,9 +2034,9 @@ plotly.graph_objs._figure.Figure or `None`:
 
   
   <div class="container-fluid">
-    <a href="index.html">API Documentation</a> for dire_jax,
+    <a href="index.html">API Documentation</a> for DiRe JAX,
   generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
-    24.11.2 at 2025-02-22 19:46:06.
+    24.11.2 at 2025-03-15 14:33:20.
   </div>
 
   <!-- Search related scripts needs to be loaded at the end of HTML 

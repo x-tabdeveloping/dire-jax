@@ -52,15 +52,15 @@ pip install dire-jax[gpu]
 and then install the latest GPU version of FAISS
 
 ```bash
-    conda install pytorch::faiss-gpu
+conda install pytorch::faiss-gpu
 ```
 
 In Google Colab you will likely need
 
 ```python
-    !pip install -q condacolab
-    import condacolab
-    condacolab.install()
+!pip install -q condacolab
+import condacolab
+condacolab.install()
 ```
 
 before you install anything via Conda. 
@@ -68,8 +68,8 @@ before you install anything via Conda.
 Then, do the imports
 
 ```python
-    from dire_jax import DiRe
-    from dire_jax.dire_utils import display_layout
+from dire_jax import DiRe
+from dire_jax.dire_utils import display_layout
 ```
 
 and afterwards, for example, try this: 
@@ -112,11 +112,11 @@ Our working paper is available in the repository. Also, check out the Jupyter no
 
 In order to run the Jupyter notebook in the ./tests folder, you need to install some extras. Either
 ```bash
-pip install dire-jax[cpu, utils]
+pip install dire-jax[cpu,utils]
 ```
 or
 ```bash
-pip install dire-jax[gpu, utils]
+pip install dire-jax[gpu,utils]
 ```
 with all the steps described above to get the GPU version of FAISS afterwards.
 
