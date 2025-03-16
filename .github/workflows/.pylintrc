@@ -1,6 +1,9 @@
+[MAIN]
+fail-under=10
+
 [FORMAT]
 max-line-length=128   # Longer lines
-max-module-lines=4096 # Longer modules
+max-module-lines=2048 # Longer modules
 
 [DESIGN]
 max-locals=32                 # Variables per function
@@ -8,3 +11,19 @@ max-statements=128            # Statements per function
 max-args=16                   # Arguments per function
 max-positional-arguments=16   # Positional arguments per function
 max-attributes=32             # Attributes per class
+
+
+[MESSAGES CONTROL]
+disable=
+    attribute-defined-outside-init,
+    invalid-name,
+    missing-docstring,
+    protected-access,
+    too-few-public-methods,
+    format,
+    fixme,
+    consider-using-assignment-expr,
+    trailing-whitespace,
+    invalid-name,
+    import-error,
+    duplicate-code,
