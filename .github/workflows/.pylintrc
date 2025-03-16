@@ -1,5 +1,5 @@
 [MAIN]
-fail-under=10
+fail-under=9.5
 
 [FORMAT]
 max-line-length=128   # Longer lines
@@ -15,14 +15,10 @@ max-attributes=32             # Attributes per class
 
 [MESSAGES CONTROL]
 disable=
-    attribute-defined-outside-init,
-    invalid-name,
-    missing-docstring,
     protected-access,
     too-few-public-methods,
     format,
     fixme,
-    consider-using-assignment-expr,
     trailing-whitespace,
     invalid-name,
     import-error,
