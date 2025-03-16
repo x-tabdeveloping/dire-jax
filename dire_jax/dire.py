@@ -198,7 +198,7 @@ class DiRe:
         #
         if my_logger is None:
             logger.remove()
-            sink = sys.stdout if verbose else open(os.devnull, 'w')
+            sink = sys.stdout if verbose else open(os.devnull, 'w', encoding='utf-8')
             logger.add(sink, level="INFO")
             self.logger = logger
             """ System logger """
@@ -996,7 +996,7 @@ class DiRe:
         fig.update_traces(marker={"size": point_size})
 
         return fig
-##
+#
 
 
 #

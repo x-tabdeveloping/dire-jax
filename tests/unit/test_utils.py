@@ -1,3 +1,10 @@
+# test_utils.py
+
+"""
+Tests for the DiRe utilities
+"""
+
+
 import unittest
 import numpy as np
 from sklearn.datasets import make_blobs

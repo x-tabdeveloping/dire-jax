@@ -1,3 +1,9 @@
+# test_dire.py
+
+"""
+Tests for the DiRe main class.
+"""
+
 import unittest
 import numpy as np
 from sklearn.datasets import make_blobs
@@ -76,9 +82,9 @@ class TestDiRe(unittest.TestCase):
 
             # Compute mean distance within cluster
             within_dists = []
-            for i in range(len(cluster_points)):
+            for i, point_i in enumerate(cluster_points):
                 for j in range(i+1, len(cluster_points)):
-                    within_dists.append(np.linalg.norm(cluster_points[i] - cluster_points[j]))
+                    within_dists.append(np.linalg.norm(point_i - cluster_points[j]))
             mean_within_dist = np.mean(within_dists)
 
             # Compute mean distance to points in other clusters
@@ -86,9 +92,9 @@ class TestDiRe(unittest.TestCase):
             other_points = layout[other_mask]
 
             between_dists = []
-            for i in range(len(cluster_points)):
-                for j in range(len(other_points)):
-                    between_dists.append(np.linalg.norm(cluster_points[i] - other_points[j]))
+            for _, point_i in enumerate(cluster_points):
+                for point_j in other_points:
+                    between_dists.append(np.linalg.norm(point_i - point_j))
             mean_between_dist = np.mean(between_dists)
 
             # Within-cluster distances should be smaller than between-cluster distances

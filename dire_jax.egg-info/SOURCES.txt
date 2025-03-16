@@ -10,3 +10,12 @@ dire_jax.egg-info/SOURCES.txt
 dire_jax.egg-info/dependency_links.txt
 dire_jax.egg-info/requires.txt
 dire_jax.egg-info/top_level.txt
+tests/__init__.py
+tests/benchmark_memory.py
+tests/check_memory_methods.py
+tests/dire_benchmarks.ipynb
+tests/run_tests.py
+tests/simple_test.py
+tests/unit/__init__.py
+tests/unit/test_dire.py
+tests/unit/test_utils.py

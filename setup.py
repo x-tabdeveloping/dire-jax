@@ -42,7 +42,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/sashakolpakov/dire-jax",
-    packages=find_packages(),
+    packages=find_packages(include=["dire_jax", "dire_jax.*", "tests", "tests.*"]),
+    include_package_data=True,  # Ensures non-Python files (like test data) are included
+    package_data={"tests": ["*.py", "*.ipynb"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
