@@ -5,6 +5,7 @@ Simple check of memory-efficient methods.
 
 import inspect
 from dire_jax import DiRe
+from dire_jax.hpmetrics import compute_local_metrics
 
 # Create reducer
 reducer = DiRe(dimension=2, n_neighbors=5)
@@ -37,8 +38,8 @@ if hasattr(reducer, '_compute_forces'):
 else:
     print("\n❌ DiRe missing _compute_forces helper method")
 
+
 # Check memory-efficient parameter in compute_local_metrics
-from dire_jax.hpmetrics import compute_local_metrics
 print("\nChecking compute_local_metrics()...")
 metrics_sig = inspect.signature(compute_local_metrics)
 print(f"Parameters: {metrics_sig.parameters}")

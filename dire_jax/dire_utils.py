@@ -77,7 +77,6 @@ def display_layout(layout, labels, point_size=2):
         figure.update_traces(marker=dict(size=point_size))
         return figure
     #
-    return None
 
 
 #
@@ -104,8 +103,6 @@ def do_local_analysis(data, layout, n_neighbors):
     # Printing local metrics
     print(f"Embedding stress (scaling adjusted): {local_metrics['stress']}")
     print(f"Neighborhood preservation score (mean, std): {local_metrics['neighbor']}")
-
-    return None
 
 
 #
@@ -170,7 +167,7 @@ def visualize_persistence_diagram(diagram, dimension, title):
         x=diagonal['x'],
         y=diagonal['y'],
         mode='lines',
-        line=dict(dash='dash', color='gray'),
+        line={"dash": 'dash', "color": 'gray'},
         name='Diagonal',
         showlegend=True
     )
@@ -179,8 +176,8 @@ def visualize_persistence_diagram(diagram, dimension, title):
     fig.update_layout(
         xaxis_title='Birth',
         yaxis_title='Death',
-        xaxis=dict(range=[0, max_value]),
-        yaxis=dict(range=[0, max_value]),
+        xaxis={"range": [0, max_value]},
+        yaxis={"range": [0, max_value]},
         height=600,
         width=600
     )
@@ -290,8 +287,6 @@ def do_persistence_analysis(data, layout, dimension, subsample_threshold, rng_ke
         print(f"Distance `Wasserstein` for dimension {dim}: {global_metrics['wass'][dim]}")
         print(f"Distance `bottleneck` for dimension {dim}: {global_metrics['bott'][dim]}")
 
-    return None
-
 
 #
 # Do quality and context analysis
@@ -328,8 +323,6 @@ def do_context_analysis(data, layout, labels, subsample_threshold, n_neighbors, 
 
     print(f"Context preservation score (SVM): {context_measures['svm']}")
     print(f"Context preservation score (kNN): {context_measures['knn']}")
-
-    return None
 
 
 #
@@ -406,8 +399,6 @@ def viz_benchmark(reducer, data, **kwargs):
                             )
     else:
         print("Data has no labels: no context analysis performed")
-
-    return None
 
 
 #

@@ -293,7 +293,7 @@ class DiRe:
             If an unsupported embedding initialization method is specified.
         """
         self.logger.info('transform ...')
-        
+
         # Create initial embedding based on specified initialization method
         if self.init_embedding_type == 'random':
             self.do_random_embedding()
@@ -305,12 +305,12 @@ class DiRe:
             error_msg = f'Unsupported embedding method: "{self.init_embedding_type}"'
             self.logger.error(error_msg)
             raise ValueError(error_msg)
-        
+
         # Optimize the layout using force-directed placement
         self.do_layout()
-        
+
         self.logger.info('transform done ...')
-        
+
         return self.layout
 
     def fit_transform(self, data):
@@ -341,7 +341,7 @@ class DiRe:
         # Store the data and perform fitting (build kNN graph)
         self.data = data
         self.fit(self.data)
-        
+
         # Transform the data (create initial embedding and optimize layout)
         return self.transform()
 
@@ -373,12 +373,12 @@ class DiRe:
         - adjacency: Sparse adjacency matrix of the kNN graph
         """
         self.logger.info('make_knn_adjacency ...')
-        
+
         # Ensure data is in the right format for FAISS
         self.data = np.ascontiguousarray(self.data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
         data_dim = self.data.shape[1]
-        
+
         # Determine appropriate batch size for memory efficiency
         if batch_size is None:
             # Heuristic: For very large datasets, use smaller batches
@@ -388,14 +388,14 @@ class DiRe:
                 batch_size = 5000
             else:
                 batch_size = self.n_samples  # Process all at once for small datasets
-                
+
         self.logger.info(f'Using batch size: {batch_size}')
 
         # Try to use GPU for kNN search, fall back to CPU if necessary
         try:
             # Check if GPU resources are available
             gpu_available = hasattr(faiss, 'StandardGpuResources')
-            
+
             if gpu_available:
                 res = faiss.StandardGpuResources()
                 # Limit GPU memory usage
@@ -405,7 +405,7 @@ class DiRe:
             else:
                 self.logger.info('GPU resources not available, using CPU')
                 index = faiss.IndexFlatL2(data_dim)
-                
+
         except Exception as e:
             # Handle any exceptions during GPU initialization
             self.logger.warning(f'Error initializing GPU resources: {str(e)}. Falling back to CPU.')
@@ -413,38 +413,38 @@ class DiRe:
 
         # Add data points to the index
         index.add(self.data)
-        
+
         # Initialize arrays for batch processing
         all_distances = np.zeros((self.n_samples, n_neighbors), dtype=np.float32)
         all_indices = np.zeros((self.n_samples, n_neighbors), dtype=np.int32)
-        
+
         # Process in batches to limit memory usage
         for i in range(0, self.n_samples, batch_size):
             # Determine end of current batch
             end_idx = min(i + batch_size, self.n_samples)
             batch_data = self.data[i:end_idx]
-            
+
             # Search for k nearest neighbors for this batch
             batch_distances, batch_indices = index.search(batch_data, n_neighbors)
-            
+
             # Store results
             all_distances[i:end_idx] = batch_distances
             all_indices[i:end_idx] = batch_indices
-            
+
             # Manual garbage collection after each batch to free memory
             gc.collect()
-        
+
         # Store results
         self.distances = all_distances
         self.indices = all_indices
-        
+
         # Extract nearest neighbor distances (excluding self)
         self.nearest_neighbor_distances = self.distances[:, 1]
-        
+
         # Create indices for sparse matrix construction
         self.row_idx = np.repeat(np.arange(self.n_samples), n_neighbors)
         self.col_idx = self.indices.ravel()
-        
+
         # Create sparse adjacency matrix (memory efficient)
         data_values = self.distances.ravel()
         self.adjacency = csr_matrix(
@@ -455,7 +455,7 @@ class DiRe:
         # Clean up resources
         del index, all_distances, all_indices
         gc.collect()
-        
+
         self.logger.info('make_knn_adjacency done ...')
 
     #
@@ -474,7 +474,7 @@ class DiRe:
         Sets the init_embedding attribute with the PCA projection of the data.
         """
         self.logger.info('do_pca_embedding ...')
-        
+
         if self.pca_kernel is not None:
             # Use Kernel PCA for nonlinear dimensionality reduction
             self.logger.info('Using kernelized PCA embedding...')
@@ -488,7 +488,7 @@ class DiRe:
             self.logger.info('Using standard PCA embedding...')
             pca = PCA(n_components=self.dimension)
             self.init_embedding = pca.fit_transform(self.data)
-        
+
         self.logger.info('do_pca_embedding done ...')
 
     def do_spectral_embedding(self):
@@ -506,7 +506,7 @@ class DiRe:
         Sets the init_embedding attribute with the spectral embedding of the data.
         """
         self.logger.info('do_spectral_embedding ...')
-        
+
         # Apply similarity kernel if provided
         if self.sim_kernel is not None:
             self.logger.info('Applying similarity kernel to adjacency matrix...')
@@ -519,20 +519,20 @@ class DiRe:
             )
         else:
             adj_mat = self.adjacency
-        
+
         # Make the adjacency matrix symmetric by adding it to its transpose
         symmetric_adj = adj_mat + adj_mat.T
-        
+
         # Compute the normalized Laplacian
         lap = laplacian(symmetric_adj, normed=True)
-        
+
         # Find the k smallest eigenvectors (k = dimension + 1)
         k = self.dimension + 1
         _, eigenvectors = eigsh(lap, k, which='SM')
-        
+
         # Skip the first eigenvector (corresponds to constant function)
         self.init_embedding = eigenvectors[:, 1:k]
-        
+
         self.logger.info('do_spectral_embedding done ...')
 
     def do_random_embedding(self):
@@ -551,18 +551,18 @@ class DiRe:
         Sets the init_embedding attribute with the random projection of the data.
         """
         self.logger.info('do_random_embedding ...')
-        
+
         # Create a random projection matrix
         key = random.PRNGKey(13)  # Fixed seed for reproducibility
         rand_basis = random.normal(key, (self.dimension, self.data_dim))
-        
+
         # Move data and projection matrix to device memory
         data_matrix = device_put(self.data)
         rand_basis = device_put(rand_basis)
-        
+
         # Project data onto random basis
         self.init_embedding = data_matrix @ rand_basis.T
-        
+
         self.logger.info('do_random_embedding done ...')
 
     #
@@ -609,28 +609,28 @@ class DiRe:
         while still capturing the important local relationships.
         """
         self.logger.info('do_rand_sampling ...')
-        
+
         sampled_indices_list = []
         arr_len = len(arr)
-        
+
         # Get random unit vectors for projections
         key, subkey = random.split(key)
         direction_vectors = rand_directions(subkey, self.dimension, n_dirs)
-        
+
         # For each direction, sample points based on projections
         for vec in direction_vectors:
             # Project points onto the direction vector
             arr_proj = vec @ arr.T
-            
+
             # Sort indices by projection values
             indices_sort = jnp.argsort(arr_proj)
-            
+
             # For each point, take n_samples points around it in sorted order
             indices = vmap_get_slice(indices_sort, n_samples, jnp.arange(arr_len))
-            
+
             # Reorder indices back to original ordering
             indices = indices[indices_sort]
-            
+
             # Add to list of sampled indices
             sampled_indices_list.append(indices)
 
@@ -642,9 +642,9 @@ class DiRe:
 
         # Combine all sampled indices
         sampled_indices = jnp.concatenate(sampled_indices_list, axis=-1)
-        
+
         self.logger.info('do_rand_sampling done ...')
-        
+
         return sampled_indices
 
     #
@@ -675,11 +675,11 @@ class DiRe:
             be helpful for large datasets that exceed GPU memory.
         """
         self.logger.info('do_layout ...')
-        
+
         # Setup parameters
         cutoff = jnp.array([self.cutoff])
         num_iterations = self.max_iter_layout
-        
+
         # Handle automatic batch size calculation if needed
         batch_size = self.sample_size
         if batch_size == 'auto':
@@ -691,7 +691,7 @@ class DiRe:
         # Determine if we should use memory-efficient mode for large datasets
         if large_dataset_mode is None:
             large_dataset_mode = self.n_samples > 50000
-            
+
         if large_dataset_mode:
             self.logger.info("Using memory-efficient mode for large dataset")
 
@@ -708,7 +708,7 @@ class DiRe:
                 init_pos_jax = device_put(self.init_embedding)
         else:
             init_pos_jax = device_put(self.init_embedding)
-            
+
         init_pos_jax -= init_pos_jax.mean(axis=0)  # Center positions
         init_pos_jax /= init_pos_jax.std(axis=0)   # Normalize variance
 
@@ -721,7 +721,7 @@ class DiRe:
         # Optimization loop
         for iter_id in tqdm(range(num_iterations)):
             logger.debug(f'Iteration {iter_id + 1}')
-            
+
             # Sample random points for repulsion
             indices_emb_jax = self.do_rand_sampling(
                 key, 
@@ -731,17 +731,17 @@ class DiRe:
                 neg_ratio
             )
             indices_emb_jax = device_put(indices_emb_jax)
-            
+
             # Split computation for memory efficiency if needed
             if large_dataset_mode and self.n_samples > 100000:
                 # Process in chunks to reduce peak memory usage
                 chunk_size = min(20000, self.n_samples)
                 all_forces = []
-                
+
                 for chunk_start in range(0, self.n_samples, chunk_size):
                     chunk_end = min(chunk_start + chunk_size, self.n_samples)
                     chunk_indices = slice(chunk_start, chunk_end)
-                    
+
                     # Process this chunk
                     chunk_force = self._compute_forces(
                         init_pos_jax,
@@ -749,15 +749,15 @@ class DiRe:
                         indices_emb_jax[chunk_indices],
                         alpha=1.0 - iter_id / num_iterations
                     )
-                    
+
                     all_forces.append(chunk_force)
-                    
+
                     # Explicitly clean up to reduce memory pressure
                     gc.collect()
-                
+
                 # Combine results from all chunks
                 net_force = jnp.concatenate(all_forces, axis=0)
-                
+
             else:
                 # Process all points at once for smaller datasets
                 net_force = self._compute_forces(
@@ -766,16 +766,16 @@ class DiRe:
                     indices_emb_jax,
                     alpha=1.0 - iter_id / num_iterations
                 )
-            
+
             # Clip forces to prevent extreme movements
             net_force = jnp.clip(net_force, -cutoff, cutoff)
-            
+
             # Update positions
             init_pos_jax += net_force
-            
+
             # Ensure we're not accumulating unnecessary computation graphs in JAX
             init_pos_jax = device_put(np.asarray(init_pos_jax))
-            
+
             # Periodically free memory
             if iter_id % 10 == 0:
                 gc.collect()
@@ -783,13 +783,13 @@ class DiRe:
         # Normalize final layout
         init_pos_jax -= init_pos_jax.mean(axis=0)
         init_pos_jax /= init_pos_jax.std(axis=0)
-        
+
         # Store final layout
         self.layout = np.asarray(init_pos_jax)
-        
+
         # Clear any cached values to free memory
         gc.collect()
-        
+
         self.logger.info('do_layout done ...')
         
     def _compute_forces(self, positions, neighbor_indices, sample_indices, alpha=1.0):
@@ -817,18 +817,18 @@ class DiRe:
         """
         # ===== Attraction Forces =====
         # Points are attracted to their high-dimensional neighbors
-        
+
         # Prepare positions and compute distances
         v_pos = positions[:, None, :]  # Shape: [n_samples, 1, dimension]
         u_pos = positions[neighbor_indices]  # Shape: [n_samples, n_neighbors, dimension]
-        
+
         # Compute position differences and distances
         position_diff = u_pos - v_pos
         distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
-        
+
         # Create mask to avoid division by zero
-        mask = (distance_geom > 0)
-        
+        mask = distance_geom > 0
+
         # Compute normalized direction vectors
         direction = jnp.where(mask, position_diff / distance_geom, 0.0)
 
@@ -841,18 +841,18 @@ class DiRe:
             1.0 * vmap_coeff_rep(distance_geom, self.a, self.b),
             0.0
         )
-        
+
         # Sum forces from all neighbors for each point
         attraction_force = jnp.sum(grad_coeff_att_vals * direction, axis=1)
 
         # ===== Repulsion Forces =====
         # Points are repelled from randomly sampled points
-        
+
         # Use sampled indices for repulsion
         u_pos = positions[sample_indices]
         position_diff = u_pos - v_pos  # Reuse v_pos
         distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
-        
+
         # Create mask for non-zero distances
         mask = (distance_geom > 0)
         direction = jnp.where(mask, position_diff / distance_geom, 0.0)
@@ -905,7 +905,7 @@ class DiRe:
         plotly.graph_objs._figure.Figure or None
             A Plotly figure object if the visualization is successful; 
             None if no layout is available or dimension > 3.
-            
+
         Notes
         -----
         For 3D visualizations, you can rotate, zoom, and pan the plot interactively.
@@ -915,11 +915,11 @@ class DiRe:
         if self.layout is None:
             self.logger.warning('visualize ERROR: no layout available')
             return None
-            
+
         # Set default title if not provided
         if title is None:
             title = f"{self.init_embedding_type.capitalize()} Initialized {self.dimension}D Embedding"
-            
+
         # Common visualization parameters
         vis_params = {
             'color': 'label' if labels is not None else None,
@@ -928,18 +928,18 @@ class DiRe:
             'title': title,
             'hover_data': ['label'] if labels is not None else None,
         }
-            
+
         # Create 2D visualization
         if self.dimension == 2:
             self.logger.info('visualize: 2D ...')
-            
+
             # Create dataframe for plotting
             datadf = pd.DataFrame(self.layout, columns=['x', 'y'])
-            
+
             # Add labels if provided
             if labels is not None:
                 datadf['label'] = labels
-                
+
             # Create scatter plot
             fig = px.scatter(
                 datadf, 
@@ -947,7 +947,7 @@ class DiRe:
                 y='y', 
                 **vis_params
             )
-            
+
             # Update layout
             fig.update_layout(
                 width=width,
@@ -955,18 +955,18 @@ class DiRe:
                 xaxis_title='Dimension 1',
                 yaxis_title='Dimension 2',
             )
-            
+
         # Create 3D visualization
         elif self.dimension == 3:
             self.logger.info('visualize: 3D ...')
-            
+
             # Create dataframe for plotting
             datadf = pd.DataFrame(self.layout, columns=['x', 'y', 'z'])
-            
+
             # Add labels if provided
             if labels is not None:
                 datadf['label'] = labels
-                
+
             # Create 3D scatter plot
             fig = px.scatter_3d(
                 datadf, 
@@ -975,7 +975,7 @@ class DiRe:
                 z='z', 
                 **vis_params
             )
-            
+
             # Update layout
             fig.update_layout(
                 width=width,
@@ -986,15 +986,15 @@ class DiRe:
                     zaxis_title='Dimension 3',
                 )
             )
-            
+
         # Return None for higher dimensions
         else:
             self.logger.warning('visualize ERROR: dimension > 3')
             return None
-            
+
         # Update marker properties
         fig.update_traces(marker=dict(size=point_size))
-        
+
         return fig
 ##
 

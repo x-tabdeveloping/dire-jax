@@ -163,7 +163,7 @@ def make_knn_graph(data, n_neighbors):
         else:
             # Re-raise other runtime errors
             raise
-    except Exception as e:
+    except Exception:
         # Fall back to CPU for any other errors
         index = faiss.IndexFlatL2(data_dim)
 
@@ -310,13 +310,12 @@ def compute_local_metrics(data, layout, n_neighbors, memory_efficient=None):
         
         print(f"Using subsampled data ({sample_size} points) for metrics computation")
         
-        metrics = {
-            'stress': compute_stress(data_sample, layout_sample, n_neighbors),
-            'neighbor': compute_neighbor_score(data_sample, layout_sample, n_neighbors)
-        }
+        metrics = {'stress': compute_stress(data_sample, layout_sample, n_neighbors),
+                   'neighbor': compute_neighbor_score(data_sample, layout_sample, n_neighbors),
+                   'note': f"Metrics computed on {sample_size} randomly sampled points due to large dataset size"}
         
         # Add note about subsampling
-        metrics['note'] = f"Metrics computed on {sample_size} randomly sampled points due to large dataset size"
+
     else:
         metrics = {
             'stress': compute_stress(data, layout, n_neighbors),
@@ -462,7 +461,7 @@ def compute_dtw(axis_x_hd, axis_y_hd, axis_x_ld, axis_y_ld, norm_factor=1.0):
 
     seq0 = np.array(list(zip(axis_x_hd, axis_y_hd)))
     seq1 = np.array(list(zip(axis_x_ld, axis_y_ld)))
-    dist_dtw, path = fastdtw(seq0, seq1, dist=2)
+    dist_dtw, _ = fastdtw(seq0, seq1, dist=2)  # dist_dtw recorded, path unused
     dist_dtw *= norm_factor
 
     return dist_dtw

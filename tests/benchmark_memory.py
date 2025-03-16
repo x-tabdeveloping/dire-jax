@@ -14,7 +14,7 @@ def run_benchmark(n_samples, n_features, n_centers, use_memory_efficient=False):
     # Generate synthetic dataset
     print(f"Generating dataset with {n_samples} samples, {n_features} features, {n_centers} centers...")
 
-    X, y = make_blobs(
+    X, _ = make_blobs(
         n_samples=n_samples,
         n_features=n_features,
         centers=n_centers,

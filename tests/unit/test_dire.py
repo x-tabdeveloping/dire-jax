@@ -14,7 +14,7 @@ class TestDiRe(unittest.TestCase):
         self.n_features = 20  # Reduced from 50
         self.n_centers = 3
         self.random_state = 42
-        
+
         # Generate blob dataset with known centers
         self.X, self.y = make_blobs(
             n_samples=self.n_samples,
@@ -22,7 +22,7 @@ class TestDiRe(unittest.TestCase):
             centers=self.n_centers,
             random_state=self.random_state
         )
-        
+
         # Standard reducer parameters
         self.dimension = 2
         self.n_neighbors = 5  # Reduced from 8
@@ -37,7 +37,7 @@ class TestDiRe(unittest.TestCase):
             sample_size=self.sample_size,
             max_iter_layout=self.max_iter_layout
         )
-        
+
         self.assertEqual(reducer.dimension, self.dimension)
         self.assertEqual(reducer.n_neighbors, self.n_neighbors)
         self.assertEqual(reducer.sample_size, self.sample_size)
@@ -51,46 +51,46 @@ class TestDiRe(unittest.TestCase):
             sample_size=self.sample_size,
             max_iter_layout=self.max_iter_layout
         )
-        
+
         # Apply fit_transform
         layout = reducer.fit_transform(self.X)
-        
+
         # Check output shape
         self.assertEqual(layout.shape[0], self.n_samples)
         self.assertEqual(layout.shape[1], self.dimension)
-        
+
         # Check output is finite
         self.assertTrue(np.isfinite(layout).all())
-        
+
         # Check cluster preservation (basic test)
         # Points from the same original cluster should be closer in the embedding
         for cluster_id in range(self.n_centers):
             cluster_mask = self.y == cluster_id
-            
+
             # Skip if there's only 1 point in the cluster
             if np.sum(cluster_mask) <= 1:
                 continue
-                
+
             # Get layout for points in this cluster
             cluster_points = layout[cluster_mask]
-            
+
             # Compute mean distance within cluster
             within_dists = []
             for i in range(len(cluster_points)):
                 for j in range(i+1, len(cluster_points)):
                     within_dists.append(np.linalg.norm(cluster_points[i] - cluster_points[j]))
             mean_within_dist = np.mean(within_dists)
-            
+
             # Compute mean distance to points in other clusters
             other_mask = ~cluster_mask
             other_points = layout[other_mask]
-            
+
             between_dists = []
             for i in range(len(cluster_points)):
                 for j in range(len(other_points)):
                     between_dists.append(np.linalg.norm(cluster_points[i] - other_points[j]))
             mean_between_dist = np.mean(between_dists)
-            
+
             # Within-cluster distances should be smaller than between-cluster distances
             # Note: This is a probabilistic test and might occasionally fail
             self.assertLess(mean_within_dist, mean_between_dist)
@@ -98,7 +98,7 @@ class TestDiRe(unittest.TestCase):
     def test_different_embedding_types(self):
         """Test different embedding initialization methods."""
         embedding_types = ['random', 'pca', 'spectral']
-        
+
         for embed_type in embedding_types:
             reducer = DiRe(
                 dimension=self.dimension,
@@ -107,14 +107,14 @@ class TestDiRe(unittest.TestCase):
                 sample_size=self.sample_size,
                 max_iter_layout=self.max_iter_layout
             )
-            
+
             # Apply fit_transform
             layout = reducer.fit_transform(self.X)
-            
+
             # Check output shape
             self.assertEqual(layout.shape[0], self.n_samples)
             self.assertEqual(layout.shape[1], self.dimension)
-            
+
             # Check output is finite
             self.assertTrue(np.isfinite(layout).all())
 
