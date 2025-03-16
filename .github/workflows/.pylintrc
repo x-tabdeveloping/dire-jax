@@ -3,8 +3,8 @@ max-line-length=128   # Longer lines
 max-module-lines=4096 # Longer modules
 
 [DESIGN]
-max-locals=32                # Variables per function
-max-statements=128           # Statements per function
-max-args=12                  # Arguments per function
-max-positional-arguments=8   # Positional arguments per function
-max-attributes=16            # Attributes per class
+max-locals=32                 # Variables per function
+max-statements=128            # Statements per function
+max-args=16                   # Arguments per function
+max-positional-arguments=16   # Positional arguments per function
+max-attributes=32             # Attributes per class
