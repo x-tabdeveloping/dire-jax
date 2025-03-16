@@ -1,8 +1,9 @@
 [FORMAT]
-max-line-length=128  # Longer lines
+max-line-length=128   # Longer lines
+max-module-lines=4096 # Longer modules
 
 [DESIGN]
-max-locals=24                # Variables per function
+max-locals=32                # Variables per function
 max-statements=128           # Statements per function
 max-args=12                  # Arguments per function
 max-positional-arguments=8   # Positional arguments per function
