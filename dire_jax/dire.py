@@ -20,6 +20,7 @@ import gc
 import functools
 
 # JAX-related imports
+import jax
 from jax import jit, lax, vmap, random, device_put
 import jax.numpy as jnp
 
@@ -448,7 +449,7 @@ class DiRe:
         # Create sparse adjacency matrix (memory efficient)
         data_values = self.distances.ravel()
         self.adjacency = csr_matrix(
-            (data_values, (self.row_idx, self.col_idx)), 
+            (data_values, (self.row_idx, self.col_idx)),
             shape=(self.n_samples, self.n_samples)
         )
 
@@ -703,7 +704,6 @@ class DiRe:
         if force_cpu:
             self.logger.info("Forcing computations on CPU")
             # Keep on CPU for larger datasets that might not fit in GPU memory
-            import jax
             with jax.default_device(jax.devices('cpu')[0]):
                 init_pos_jax = device_put(self.init_embedding)
         else:
@@ -854,7 +854,7 @@ class DiRe:
         distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
 
         # Create mask for non-zero distances
-        mask = (distance_geom > 0)
+        mask = distance_geom > 0
         direction = jnp.where(mask, position_diff / distance_geom, 0.0)
 
         # Compute repulsion forces
@@ -980,11 +980,11 @@ class DiRe:
             fig.update_layout(
                 width=width,
                 height=height,
-                scene=dict(
-                    xaxis_title='Dimension 1',
-                    yaxis_title='Dimension 2',
-                    zaxis_title='Dimension 3',
-                )
+                scene={
+                    "xaxis_title": 'x',
+                    "yaxis_title": 'y',
+                    "zaxis_title": 'z',
+                    }
             )
 
         # Return None for higher dimensions
@@ -993,7 +993,7 @@ class DiRe:
             return None
 
         # Update marker properties
-        fig.update_traces(marker=dict(size=point_size))
+        fig.update_traces(marker={"size": point_size})
 
         return fig
 ##

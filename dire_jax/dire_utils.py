@@ -8,18 +8,19 @@ Utilities for plotting, benchmarking, and miscellany
 # Imports
 #
 
-import numpy as np
-import pandas as pd
-import plotly.express as px
-from jax import random
 from collections import defaultdict
 from time import perf_counter
 from contextlib import contextmanager
 
+import numpy as np
+import pandas as pd
+import plotly.express as px
+from jax import random
+
 from .hpmetrics import (compute_local_metrics,
                         compute_global_metrics,
-                        compute_context_measures)
-
+                        compute_context_measures,
+                        compute_quality_measures)
 
 #
 # Auxiliary functions for plotting, benchmarking, and miscellany
@@ -59,7 +60,7 @@ def display_layout(layout, labels, point_size=2):
             figure = px.scatter(data_df, x='x', y='y',
                                 title=f'Layout in dimension {dimension}')
 
-        figure.update_traces(marker=dict(size=point_size))
+        figure.update_traces(marker={"size": point_size})
         return figure
     #
     if dimension == 3:
@@ -74,9 +75,10 @@ def display_layout(layout, labels, point_size=2):
             figure = px.scatter_3d(data_df, x='x', y='y', z='z',
                                    title=f'Layout in dimension {dimension}')
 
-        figure.update_traces(marker=dict(size=point_size))
+        figure.update_traces(marker={"size": point_size})
         return figure
     #
+    return None
 
 
 #
@@ -445,7 +447,6 @@ def do_metrics(reducer, data, **kwargs):
     mdict.update(gdict['metrics'])
 
     # Add quality measures for the embedding
-    from .hpmetrics import compute_quality_measures
     qdict = compute_quality_measures(data, layout)
     mdict.update(qdict)
 
