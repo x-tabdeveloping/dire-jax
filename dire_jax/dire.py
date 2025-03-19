@@ -21,7 +21,7 @@ import functools
 
 # JAX-related imports
 import jax
-from jax import jit, lax, vmap, random, device_put
+from jax import jit, lax, vmap, random, device_put, device_get
 import jax.numpy as jnp
 
 # Scientific and numerical libraries
@@ -41,7 +41,7 @@ from tqdm import tqdm
 from loguru import logger
 
 # Nearest neighbor search
-import faiss
+from .hpindex import HPIndex
 
 
 #
@@ -108,8 +108,8 @@ class DiRe:
         Maximum cutoff for forces during optimization.
     n_sample_dirs: int
         Number of random directions sampled.
-    sample_size: int
-        Number of samples per random direction.
+    sample_size: int or 'auto'
+        Number of samples per random direction, unless chosen automatically with 'auto'.
     neg_ratio: int
         Ratio of negative to positive samples in the sampling process.
     logger: logger.Logger or `None`
@@ -183,9 +183,11 @@ class DiRe:
         """ Number of data points """
         self.data_dim = None
         """ Dimension of data """
-        self.distances = None
+        self.distances_np = None
+        self.distances_jax = None
         """ Distances in the kNN graph """
-        self.indices = None
+        self.indices_np = None
+        self.indices_jax = None
         """ Neighbor indices in the kNN graph """
         self.nearest_neighbor_distances = None
         """ Neighbor indices in the kNN graph, excluding the point itself """
@@ -219,6 +221,7 @@ class DiRe:
 
         def curve(x, a, b):
             return 1.0 / (1.0 + a * x ** (2 * b))
+
         #
         xv = np.linspace(0, spread * 3, 300)
         yv = np.zeros(xv.shape)
@@ -353,19 +356,19 @@ class DiRe:
     def make_knn_adjacency(self, batch_size=None):
         """
         Internal routine building the adjacency matrix for the kNN graph.
-        
+
         This method computes the k-nearest neighbors for each point in the dataset
         and constructs a sparse adjacency matrix representing the kNN graph.
         It attempts to use GPU acceleration if available, with a fallback to CPU.
-        
+
         For large datasets, it uses batching to limit memory usage.
-        
+
         Parameters
         ----------
         batch_size : int or None, optional
-            Number of samples to process at once. If None, a suitable value 
+            Number of samples to process at once. If None, a suitable value
             will be automatically determined based on dataset size.
-            
+
         The method sets the following instance attributes:
         - distances: Distances to the k nearest neighbors (including self)
         - indices: Indices of the k nearest neighbors (including self)
@@ -375,86 +378,48 @@ class DiRe:
         """
         self.logger.info('make_knn_adjacency ...')
 
-        # Ensure data is in the right format for FAISS
+        # Ensure data is in the right format for HPIndex
         self.data = np.ascontiguousarray(self.data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
-        data_dim = self.data.shape[1]
 
         # Determine appropriate batch size for memory efficiency
         if batch_size is None:
             # Heuristic: For very large datasets, use smaller batches
-            if self.n_samples > 100000:
-                batch_size = 10000
-            elif self.n_samples > 10000:
-                batch_size = 5000
+            if self.n_samples > 131072:
+                batch_size = 4096
+            elif self.n_samples > 32768:
+                batch_size = 8192
             else:
                 batch_size = self.n_samples  # Process all at once for small datasets
 
         self.logger.info(f'Using batch size: {batch_size}')
 
-        # Try to use GPU for kNN search, fall back to CPU if necessary
-        try:
-            # Check if GPU resources are available
-            gpu_available = hasattr(faiss, 'StandardGpuResources')
+        indices_jax, distances_jax = HPIndex.knn_tiled(
+            self.data, self.data, n_neighbors, batch_size, batch_size)
 
-            if gpu_available:
-                res = faiss.StandardGpuResources()
-                # Limit GPU memory usage
-                res.setTempMemory(1024 * 1024 * 1024)  # 1GB limit
-                index = faiss.GpuIndexFlatL2(res, data_dim)
-                self.logger.info('Using GPU for kNN search')
-            else:
-                self.logger.info('GPU resources not available, using CPU')
-                index = faiss.IndexFlatL2(data_dim)
+        # Store results in jax
+        self.indices_jax = indices_jax.block_until_ready()
+        self.distances_jax = distances_jax.block_until_ready()
 
-        except Exception as e:
-            # Handle any exceptions during GPU initialization
-            self.logger.warning(f'Error initializing GPU resources: {str(e)}. Falling back to CPU.')
-            index = faiss.IndexFlatL2(data_dim)
-
-        # Add data points to the index
-        index.add(self.data)
-
-        # Initialize arrays for batch processing
-        all_distances = np.zeros((self.n_samples, n_neighbors), dtype=np.float32)
-        all_indices = np.zeros((self.n_samples, n_neighbors), dtype=np.int32)
-
-        # Process in batches to limit memory usage
-        for i in range(0, self.n_samples, batch_size):
-            # Determine end of current batch
-            end_idx = min(i + batch_size, self.n_samples)
-            batch_data = self.data[i:end_idx]
-
-            # Search for k nearest neighbors for this batch
-            batch_distances, batch_indices = index.search(batch_data, n_neighbors)
-
-            # Store results
-            all_distances[i:end_idx] = batch_distances
-            all_indices[i:end_idx] = batch_indices
-
-            # Manual garbage collection after each batch to free memory
-            gc.collect()
-
-        # Store results
-        self.distances = all_distances
-        self.indices = all_indices
+        # Store results in numpy
+        self.indices_np = device_get(self.indices_jax)
+        self.distances_np = device_get(self.distances_jax)
 
         # Extract nearest neighbor distances (excluding self)
-        self.nearest_neighbor_distances = self.distances[:, 1]
+        self.nearest_neighbor_distances = self.distances_np[:, 1:]
 
         # Create indices for sparse matrix construction
         self.row_idx = np.repeat(np.arange(self.n_samples), n_neighbors)
-        self.col_idx = self.indices.ravel()
+        self.col_idx = self.indices_np.ravel()
 
         # Create sparse adjacency matrix (memory efficient)
-        data_values = self.distances.ravel()
+        data_values = self.distances_np.ravel()
         self.adjacency = csr_matrix(
             (data_values, (self.row_idx, self.col_idx)),
             shape=(self.n_samples, self.n_samples)
         )
 
         # Clean up resources
-        del index, all_distances, all_indices
         gc.collect()
 
         self.logger.info('make_knn_adjacency done ...')
@@ -480,7 +445,7 @@ class DiRe:
             # Use Kernel PCA for nonlinear dimensionality reduction
             self.logger.info('Using kernelized PCA embedding...')
             pca = KernelPCA(
-                n_components=self.dimension, 
+                n_components=self.dimension,
                 kernel=self.pca_kernel
             )
             self.init_embedding = pca.fit_transform(self.data)
@@ -515,7 +480,7 @@ class DiRe:
             data_values = self.sim_kernel(self.adjacency.data)
             # Create a new adjacency matrix with transformed values
             adj_mat = csr_matrix(
-                (data_values, (self.row_idx, self.col_idx)), 
+                (data_values, (self.row_idx, self.col_idx)),
                 shape=(self.n_samples, self.n_samples)
             )
         else:
@@ -651,28 +616,31 @@ class DiRe:
     #
     # Create layout using force-directed optimization
     #
+    #
+    # Create layout using force-directed optimization
+    #
 
     def do_layout(self, large_dataset_mode=None, force_cpu=False):
         """
         Optimize the layout using force-directed placement.
-        
+
         This method takes the initial embedding and iteratively refines it using
-        attractive and repulsive forces to create a meaningful low-dimensional 
+        attractive and repulsive forces to create a meaningful low-dimensional
         representation of the high-dimensional data. The algorithm applies:
-        
+
         1. Attraction forces between points that are neighbors in the high-dimensional space
         2. Repulsion forces between randomly sampled points in the low-dimensional space
         3. Gradual cooling (decreasing force impact) as iterations progress
-        
+
         The final layout is normalized to have zero mean and unit standard deviation.
-        
+
         Parameters
         ----------
         large_dataset_mode : bool or None, optional
             If True, use memory-efficient techniques for large datasets.
             If None, automatically determine based on dataset size.
         force_cpu : bool, optional
-            If True, force computations on CPU instead of GPU, which can 
+            If True, force computations on CPU instead of GPU, which can
             be helpful for large datasets that exceed GPU memory.
         """
         self.logger.info('do_layout ...')
@@ -691,29 +659,32 @@ class DiRe:
 
         # Determine if we should use memory-efficient mode for large datasets
         if large_dataset_mode is None:
-            large_dataset_mode = self.n_samples > 50000
+            large_dataset_mode = self.n_samples > 65536
 
         if large_dataset_mode:
             self.logger.info("Using memory-efficient mode for large dataset")
+
+        self.logger.info(f"Using batch size: {batch_size}")
 
         # Other parameters
         n_dirs = self.n_sample_dirs
         neg_ratio = self.neg_ratio
 
+        force_cpu = large_dataset_mode and (jax.devices()[0].platform == 'tpu')
+
         # Initialize and normalize positions
+
         if force_cpu:
             self.logger.info("Forcing computations on CPU")
-            # Keep on CPU for larger datasets that might not fit in GPU memory
-            with jax.default_device(jax.devices('cpu')[0]):
-                init_pos_jax = device_put(self.init_embedding)
+            cpu_device = jax.devices('cpu')[0]
+            init_pos_jax = device_put(self.init_embedding, device=cpu_device)
+            indices_jax = device_put(self.indices_np, device=cpu_device)
         else:
             init_pos_jax = device_put(self.init_embedding)
+            indices_jax = device_put(self.indices_jax)
 
         init_pos_jax -= init_pos_jax.mean(axis=0)  # Center positions
-        init_pos_jax /= init_pos_jax.std(axis=0)   # Normalize variance
-
-        # Transfer indices to device
-        indices_jax = device_put(self.indices)
+        init_pos_jax /= init_pos_jax.std(axis=0)  # Normalize variance
 
         # Set random seed for reproducibility
         key = random.PRNGKey(42)
@@ -724,19 +695,26 @@ class DiRe:
 
             # Sample random points for repulsion
             indices_emb_jax = self.do_rand_sampling(
-                key, 
-                init_pos_jax, 
-                batch_size, 
-                n_dirs, 
+                key,
+                init_pos_jax,
+                batch_size,
+                n_dirs,
                 neg_ratio
             )
-            indices_emb_jax = device_put(indices_emb_jax)
+
+            if force_cpu:
+                cpu_device = jax.devices('cpu')[0]
+                indices_emb_jax = device_put(indices_emb_jax, device=cpu_device)
+            else:
+                indices_emb_jax = device_put(indices_emb_jax)
 
             # Split computation for memory efficiency if needed
-            if large_dataset_mode and self.n_samples > 100000:
+            if large_dataset_mode and self.n_samples > 131072:
                 # Process in chunks to reduce peak memory usage
-                chunk_size = min(20000, self.n_samples)
+                chunk_size = min(16384, self.n_samples)
                 all_forces = []
+
+                self.logger.info(f"Attempting memory tiling with tile size: {chunk_size}")
 
                 for chunk_start in range(0, self.n_samples, chunk_size):
                     chunk_end = min(chunk_start + chunk_size, self.n_samples)
@@ -761,8 +739,8 @@ class DiRe:
             else:
                 # Process all points at once for smaller datasets
                 net_force = self._compute_forces(
-                    init_pos_jax, 
-                    indices_jax, 
+                    init_pos_jax,
+                    indices_jax,
                     indices_emb_jax,
                     alpha=1.0 - iter_id / num_iterations
                 )
@@ -774,11 +752,10 @@ class DiRe:
             init_pos_jax += net_force
 
             # Ensure we're not accumulating unnecessary computation graphs in JAX
-            init_pos_jax = device_put(np.asarray(init_pos_jax))
+            init_pos_jax.block_until_ready()
 
-            # Periodically free memory
-            if iter_id % 10 == 0:
-                gc.collect()
+            # Clean up resources
+            gc.collect()
 
         # Normalize final layout
         init_pos_jax -= init_pos_jax.mean(axis=0)
@@ -791,7 +768,7 @@ class DiRe:
         gc.collect()
 
         self.logger.info('do_layout done ...')
-        
+
     def _compute_forces(self, positions, neighbor_indices, sample_indices, alpha=1.0):
         """
         Compute attractive and repulsive forces for points.
@@ -837,7 +814,7 @@ class DiRe:
         # aren't also pushed apart by the general repulsion phase
         grad_coeff_att_vals = jnp.where(
             mask,
-            1.0 * vmap_coeff_att(distance_geom, self.a, self.b) - 
+            1.0 * vmap_coeff_att(distance_geom, self.a, self.b) -
             1.0 * vmap_coeff_rep(distance_geom, self.a, self.b),
             0.0
         )
@@ -942,9 +919,9 @@ class DiRe:
 
             # Create scatter plot
             fig = px.scatter(
-                datadf, 
-                x='x', 
-                y='y', 
+                datadf,
+                x='x',
+                y='y',
                 **vis_params
             )
 
@@ -969,10 +946,10 @@ class DiRe:
 
             # Create 3D scatter plot
             fig = px.scatter_3d(
-                datadf, 
-                x='x', 
-                y='y', 
-                z='z', 
+                datadf,
+                x='x',
+                y='y',
+                z='z',
                 **vis_params
             )
 
@@ -984,7 +961,7 @@ class DiRe:
                     "xaxis_title": 'x',
                     "yaxis_title": 'y',
                     "zaxis_title": 'z',
-                    }
+                }
             )
 
         # Return None for higher dimensions
@@ -996,6 +973,8 @@ class DiRe:
         fig.update_traces(marker={"size": point_size})
 
         return fig
+
+
 #
 
 

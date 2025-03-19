@@ -32,7 +32,7 @@
       
       <div class="navlinks">
         <span class="navbar-brand">
-          DiRe JAX <a href="index.html">API Documentation</a>
+          DiRe - JAX <a href="index.html">API Documentation</a>
         </span>
 
         <a href="moduleIndex.html">
@@ -350,7 +350,7 @@
         
 
         
-            <div class="itemName"><code><a href="#distances" class="internal-link" title="dire_jax.dire.DiRe.distances">distances</a></code>
+            <div class="itemName"><code><a href="#distances_jax" class="internal-link" title="dire_jax.dire.DiRe.distances_jax">distances<wbr></wbr>_jax</a></code>
             </div>
         
 
@@ -360,7 +360,27 @@
         
 
         
-            <div class="itemName"><code><a href="#indices" class="internal-link" title="dire_jax.dire.DiRe.indices">indices</a></code>
+            <div class="itemName"><code><a href="#distances_np" class="internal-link" title="dire_jax.dire.DiRe.distances_np">distances<wbr></wbr>_np</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#indices_jax" class="internal-link" title="dire_jax.dire.DiRe.indices_jax">indices<wbr></wbr>_jax</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#indices_np" class="internal-link" title="dire_jax.dire.DiRe.indices_np">indices<wbr></wbr>_np</a></code>
             </div>
         
 
@@ -752,8 +772,8 @@ cutoff: float
     Maximum cutoff for forces during optimization.
 n_sample_dirs: int
     Number of random directions sampled.
-sample_size: int
-    Number of samples per random direction.
+sample_size: int or 'auto'
+    Number of samples per random direction, unless chosen automatically with 'auto'.
 neg_ratio: int
     Ratio of negative to positive samples in the sampling process.
 logger: logger.Logger or `None`
@@ -876,13 +896,23 @@ visualize(labels=None, point_size=2)
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
-    <td><code><a href="#distances" class="internal-link" title="dire_jax.dire.DiRe.distances">distances</a></code></td>
+    <td><code><a href="#distances_jax" class="internal-link" title="dire_jax.dire.DiRe.distances_jax">distances<wbr></wbr>_jax</a></code></td>
     <td>Distances in the kNN graph</td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
-    <td><code><a href="#indices" class="internal-link" title="dire_jax.dire.DiRe.indices">indices</a></code></td>
+    <td><code><a href="#distances_np" class="internal-link" title="dire_jax.dire.DiRe.distances_np">distances<wbr></wbr>_np</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#indices_jax" class="internal-link" title="dire_jax.dire.DiRe.indices_jax">indices<wbr></wbr>_jax</a></code></td>
     <td>Neighbor indices in the kNN graph</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#indices_np" class="internal-link" title="dire_jax.dire.DiRe.indices_np">indices<wbr></wbr>_np</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
@@ -1025,7 +1055,7 @@ visualize(labels=None, point_size=2)
     <div><p class="pre">Optimize the layout using force-directed placement.
 
 This method takes the initial embedding and iteratively refines it using
-attractive and repulsive forces to create a meaningful low-dimensional 
+attractive and repulsive forces to create a meaningful low-dimensional
 representation of the high-dimensional data. The algorithm applies:
 
 1. Attraction forces between points that are neighbors in the high-dimensional space
@@ -1040,7 +1070,7 @@ large_dataset_mode : bool or None, optional
     If True, use memory-efficient techniques for large datasets.
     If None, automatically determine based on dataset size.
 force_cpu : bool, optional
-    If True, force computations on CPU instead of GPU, which can 
+    If True, force computations on CPU instead of GPU, which can
     be helpful for large datasets that exceed GPU memory.</p></div>
   </div>
 </div><div class="basemethod">
@@ -1320,9 +1350,9 @@ For large datasets, it uses batching to limit memory usage.
 Parameters
 ----------
 batch_size : int or None, optional
-    Number of samples to process at once. If None, a suitable value 
+    Number of samples to process at once. If None, a suitable value
     will be automatically determined based on dataset size.
-    
+
 The method sets the following instance attributes:
 - distances: Distances to the k nearest neighbors (including self)
 - indices: Indices of the k nearest neighbors (including self)
@@ -1627,17 +1657,17 @@ For both 2D and 3D, hover over points to see their coordinates and labels.</p></
 </div><div class="baseinstancevariable">
   
   
-  <a name="dire_jax.dire.DiRe.distances">
+  <a name="dire_jax.dire.DiRe.distances_jax">
     
   </a>
-  <a name="distances">
+  <a name="distances_jax">
     
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">distances</span> =
+    <span class="py-defname">distances_jax</span> =
     
-    <a class="headerLink" href="#distances" title="dire_jax.dire.DiRe.distances">
+    <a class="headerLink" href="#distances_jax" title="dire_jax.dire.DiRe.distances_jax">
       
       
       ¶
@@ -1651,17 +1681,41 @@ For both 2D and 3D, hover over points to see their coordinates and labels.</p></
 </div><div class="baseinstancevariable">
   
   
-  <a name="dire_jax.dire.DiRe.indices">
+  <a name="dire_jax.dire.DiRe.distances_np">
     
   </a>
-  <a name="indices">
+  <a name="distances_np">
     
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">indices</span> =
+    <span class="py-defname">distances_np</span> =
     
-    <a class="headerLink" href="#indices" title="dire_jax.dire.DiRe.indices">
+    <a class="headerLink" href="#distances_np" title="dire_jax.dire.DiRe.distances_np">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.indices_jax">
+    
+  </a>
+  <a name="indices_jax">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">indices_jax</span> =
+    
+    <a class="headerLink" href="#indices_jax" title="dire_jax.dire.DiRe.indices_jax">
       
       
       ¶
@@ -1670,6 +1724,30 @@ For both 2D and 3D, hover over points to see their coordinates and labels.</p></
   <div class="functionBody">
     
     <div><p>Neighbor indices in the kNN graph</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="dire_jax.dire.DiRe.indices_np">
+    
+  </a>
+  <a name="indices_np">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">indices_np</span> =
+    
+    <a class="headerLink" href="#indices_np" title="dire_jax.dire.DiRe.indices_np">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -2109,9 +2187,9 @@ jax.numpy.ndarray
 
   
   <div class="container-fluid">
-    <a href="index.html">API Documentation</a> for DiRe JAX,
+    <a href="index.html">API Documentation</a> for DiRe - JAX,
   generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
-    24.11.2 at 2025-03-16 13:30:32.
+    24.11.2 at 2025-03-19 01:25:17.
   </div>
 
   <!-- Search related scripts needs to be loaded at the end of HTML 

@@ -5,10 +5,6 @@ from setuptools import setup, find_packages
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-# Comment on GPU extra vs CPU extra
-print("For CPU, use [cpu] extra, and faiss-cpu will be installed automatically via pip.")
-print("For GPU, use [gpu] extra, and manually install faiss-gpu via conda.")
-
 # Comment on utils extra
 print("For benchmarking, metrics and utilities, use [utils] extra.")
 
@@ -53,8 +49,6 @@ setup(
     python_requires=">=3.7",
     install_requires=core_deps,
     extras_require={
-        "cpu": ["faiss-cpu"],
-        "gpu": [],  # faiss-gpu installed manually via conda
         "utils": utils_deps,
     },
 )

@@ -11,8 +11,7 @@ Auxiliary functions for high-performance benchmarking metrics
 import gc
 import numpy as np
 import jax.numpy as jnp
-from jax import jit, lax, random
-import faiss
+from jax import jit, lax, random, device_get
 import ot
 from ripser import ripser
 from fastdtw import fastdtw
@@ -24,6 +23,7 @@ from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 
+from .hpindex import HPIndex
 
 #
 # Auxiliary functions
@@ -127,54 +127,33 @@ def make_knn_graph(data, n_neighbors):
         
         The first column contains each point's self-reference (distance 0.0 and own index).
         The remaining columns contain the n_neighbors nearest neighbors in ascending order of distance.
-    
-    Notes
-    -----
-    This function attempts to use GPU acceleration via FAISS if available,
-    falling back to CPU computation if GPU resources are unavailable.
+
     """
-    # Get data dimensions
-    data_dim = data.shape[1]
+    # Get data size
+    n_samples = data.shape[1]
+
+    # Determine appropriate batch size for memory efficiency
+    if n_samples > 131072:
+        batch_size = 8192
+    elif n_samples > 16348:
+        batch_size = 1024
+    else:
+        batch_size = n_samples  # Process all at once for small datasets
     
-    # Convert data to the required format for FAISS
+    # Convert data to the required format for kNN search
     data_np = np.ascontiguousarray(data.astype(np.float32))
-    
-    # Try to use GPU for kNN search, with graceful fallback to CPU
-    try:
-        # Check if GPU resources are available in FAISS
-        gpu_available = hasattr(faiss, 'StandardGpuResources')
-        
-        if gpu_available:
-            # Initialize GPU resources and index
-            res = faiss.StandardGpuResources()
-            index = faiss.GpuIndexFlatL2(res, data_dim)
-        else:
-            # Use CPU index if GPU is not available
-            index = faiss.IndexFlatL2(data_dim)
-            
-    except AttributeError:
-        # Handle specific error when GPU resources aren't available
-        index = faiss.IndexFlatL2(data_dim)
-    except RuntimeError as e:
-        # Handle runtime errors during GPU initialization
-        if "cuda" in str(e).lower():
-            # CUDA-specific errors
-            index = faiss.IndexFlatL2(data_dim)
-        else:
-            # Re-raise other runtime errors
-            raise
-    except Exception:
-        # Fall back to CPU for any other errors
-        index = faiss.IndexFlatL2(data_dim)
 
-    # Add data points to the index
-    index.add(data_np)
+    jax_indices, jax_distances = HPIndex.knn_tiled(
+        data_np, data_np, n_neighbors+1, batch_size, batch_size)
 
-    # Search for k nearest neighbors (including self)
-    distances, indices = index.search(data_np, n_neighbors + 1)
+    jax_indices = jax_indices.block_until_ready()
+    jax_distances = jax_distances.block_until_ready()
+
+    indices = device_get(jax_indices)
+    distances = device_get(jax_distances)
 
     # Clean up resources
-    del index
+    del jax_indices, jax_distances
     gc.collect()
 
     return distances, indices
@@ -203,20 +182,20 @@ def compute_stress(data, layout, n_neighbors, eps=1e-6):
     # Computing kNN distances and indices for higher-dimensional data
     distances, indices = make_knn_graph(data, n_neighbors)
 
-    # FAISS uses L2 distances squared (sic!)
+    # HPIndex returns L2 distances squared (sic!)
     # Higher-dimensional distances
-    distances = jnp.sqrt(distances)
+    distances = np.sqrt(distances)
 
     # Lower-dimensional distances
-    distances_emb = jnp.linalg.norm(layout[:, None] - layout[indices], axis=-1)
+    distances_emb = np.linalg.norm(layout[:, None] - layout[indices], axis=-1)
 
     # Removing zero distance to self
     distances = distances[:, 1:]
     distances_emb = distances_emb[:, 1:]
 
     # Computing normalized (= scaling adjusted) stress
-    ratios = jnp.absolute(distances / distances_emb - 1.0)
-    stress_mean, stress_std = welford(ratios.ravel())
+    ratios = np.absolute(distances / distances_emb - 1.0)
+    stress_mean, stress_std = welford(jnp.asarray(ratios.ravel()))
 
     # Avoiding division by 0 if stress is small
     stress_normalized = 0.0 if stress_mean < eps else stress_std.item() / stress_mean.item()
@@ -262,14 +241,14 @@ def compute_neighbor_score(data, layout, n_neighbors):
     indices_embed = indices_embed[:, 1:]
 
     # Sorting indices for efficient search
-    indices_data = jnp.sort(indices_data, axis=1)
-    indices_embed = jnp.sort(indices_embed, axis=1)
+    indices_data = np.sort(indices_data, axis=1)
+    indices_embed = np.sort(indices_embed, axis=1)
 
     # Compute preservation scores for each point neighborhood
-    preservation_scores = jnp.mean(indices_data == indices_embed, axis=1)
+    preservation_scores = np.mean(indices_data == indices_embed, axis=1)
 
     # Mean and std over all points
-    neighbor_mean, neighbor_std = welford(preservation_scores.ravel())
+    neighbor_mean, neighbor_std = welford(jnp.asarray(preservation_scores.ravel()))
 
     return [neighbor_mean.item(), neighbor_std.item()]
 
@@ -875,8 +854,8 @@ def compute_quality_measures(data, layout):
         - shepard_correlation: Correlation between pairwise distances in original and embedded spaces
     """
     # Calculate pairwise distances in original space
-    n_samples = min(10000, data.shape[0])  # Limit computation for very large datasets
-    
+    n_samples = min(16348, data.shape[0])  # Limit computation for very large datasets
+
     if data.shape[0] > n_samples:
         # Random sampling for large datasets
         indices = np.random.choice(data.shape[0], n_samples, replace=False)
@@ -886,39 +865,29 @@ def compute_quality_measures(data, layout):
         data_subset = data
         layout_subset = layout
     
-    # Use FAISS for efficient distance computation
+    # Use contiguous arrays for efficient distance computation
     data_np = np.ascontiguousarray(data_subset.astype(np.float32))
-    index_hd = faiss.IndexFlatL2(data_subset.shape[1])
-    index_hd.add(data_np)
-    
     layout_np = np.ascontiguousarray(layout_subset.astype(np.float32))
-    index_ld = faiss.IndexFlatL2(layout_subset.shape[1])
-    index_ld.add(layout_np)
-    
+
     # Compute all pairwise distances (excluding self-distances)
     k = min(100, n_samples)  # Number of neighbors to consider
     
-    # High-dimensional distances
-    hd_distances, hd_indices = index_hd.search(data_np, k+1)
-    hd_distances = np.sqrt(hd_distances[:, 1:])  # Skip the first column (self)
+    # High-dimensional distances and indices
+    hd_indices, hd_distances = make_knn_graph(data_np, k)
     hd_indices = hd_indices[:, 1:]  # Skip the first column (self)
-    
+    hd_distances = hd_distances[:, 1:]  # Skip the first column (self)
+    hd_distances = np.sqrt(hd_distances)
+
     # Low-dimensional distances
-    ld_distances, ld_indices = index_ld.search(layout_np, k+1)
-    ld_distances = np.sqrt(ld_distances[:, 1:])  # Skip the first column (self)
+    ld_indices, ld_distances = make_knn_graph(layout_np, k)
     ld_indices = ld_indices[:, 1:]  # Skip the first column (self)
+    ld_distances = ld_distances[:, 1:]  # Skip the first column (self)
+    ld_distances = np.sqrt(ld_distances)
     
     # Calculate trustworthiness (are neighbors in embedding also neighbors in original space?)
     def calculate_trustworthiness():
         # Vectorized implementation for better performance
         trust_sum = 0
-        
-        # Pre-compute all pairwise distances in the original space
-        # Use FAISS to compute full distance matrix for data_subset
-        data_flat = faiss.IndexFlatL2(data_subset.shape[1])
-        data_flat.add(data_np)
-        full_hd_distances, _ = data_flat.search(data_np, n_samples)
-        full_hd_distances = np.sqrt(full_hd_distances)
         
         for i in range(n_samples):
             # Get neighbors in the embedding
@@ -936,7 +905,7 @@ def compute_quality_measures(data, layout):
                 # Get the distances to violators in the original space
                 for j in violators:
                     # Calculate rank based on distance
-                    orig_dists = full_hd_distances[i]
+                    orig_dists = hd_distances[i]
                     dist_to_j = orig_dists[j]
                     # Count how many points are closer than j to i
                     orig_rank = np.sum(orig_dists < dist_to_j)
@@ -956,13 +925,6 @@ def compute_quality_measures(data, layout):
         # Vectorized implementation for better performance
         cont_sum = 0
         
-        # Pre-compute all pairwise distances in the embedding
-        # Use FAISS to compute full distance matrix for layout_subset
-        layout_flat = faiss.IndexFlatL2(layout_subset.shape[1])
-        layout_flat.add(layout_np)
-        full_ld_distances, _ = layout_flat.search(layout_np, n_samples)
-        full_ld_distances = np.sqrt(full_ld_distances)
-        
         for i in range(n_samples):
             # Get neighbors in the original space
             hd_neighbor_indices = hd_indices[i]
@@ -979,7 +941,7 @@ def compute_quality_measures(data, layout):
                 # Get the distances to violators in the embedding
                 for j in violators:
                     # Calculate rank based on distance
-                    embed_dists = full_ld_distances[i]
+                    embed_dists = ld_distances[i]
                     dist_to_j = embed_dists[j]
                     # Count how many points are closer than j to i
                     embed_rank = np.sum(embed_dists < dist_to_j)
@@ -997,7 +959,7 @@ def compute_quality_measures(data, layout):
     # Calculate Shepard diagram correlation
     def calculate_shepard_correlation():
         # Sample pairs for correlation
-        n_pairs = min(100000, n_samples * (n_samples - 1) // 2)
+        n_pairs = min(131072, n_samples * (n_samples - 1) // 2)
         
         # Generate random pairs
         i_indices = np.random.randint(0, n_samples, n_pairs)
@@ -1027,6 +989,7 @@ def compute_quality_measures(data, layout):
         'continuity': continuity,
         'shepard_correlation': shepard_correlation
     }
+
 
 #
 # Compute context measures (context preservation)

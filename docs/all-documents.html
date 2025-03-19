@@ -28,7 +28,7 @@
       
       <div class="navlinks">
         <span class="navbar-brand">
-          DiRe JAX <a href="index.html">API Documentation</a>
+          DiRe - JAX <a href="index.html">API Documentation</a>
         </span>
 
         <a href="moduleIndex.html">
@@ -124,6 +124,14 @@
             <div class="kind">Module</div>
             <div class="privacy">PUBLIC</div>
             <div class="summary">Utilities for plotting, benchmarking, and miscellany</div>
+          </li><li id="dire_jax.hpindex">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpindex</div>
+            <div class="url">dire_jax.hpindex.html</div>
+            <div class="type">Module</div>
+            <div class="kind">Module</div>
+            <div class="privacy">PUBLIC</div>
+            <div class="summary">A JAX-based implementation for efficient k-nearest neighbors. Uses batching / tiling to efficiently handle large datasets with limited memory usage.</div>
           </li><li id="dire_jax.hpmetrics">
             
             <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpmetrics</div>
@@ -132,6 +140,46 @@
             <div class="kind">Module</div>
             <div class="privacy">PUBLIC</div>
             <div class="summary">Auxiliary functions for high-performance benchmarking metrics</div>
+          </li><li id="dire_jax.hpindex.HPIndex">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpindex<wbr></wbr>.<wbr></wbr>HPIndex</div>
+            <div class="url">dire_jax.hpindex.HPIndex.html</div>
+            <div class="type">Class</div>
+            <div class="kind">Class</div>
+            <div class="privacy">PUBLIC</div>
+            <div class="summary"><span class="undocumented">No class docstring; 0/1 method, 2/2 static methods documented</span></div>
+          </li><li id="dire_jax.hpindex.HPIndex.__init__">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpindex<wbr></wbr>.<wbr></wbr>HPIndex<wbr></wbr>.__init__</div>
+            <div class="url">dire_jax.hpindex.HPIndex.html#__init__</div>
+            <div class="type">Function</div>
+            <div class="kind">Method</div>
+            <div class="privacy">PUBLIC</div>
+            <div class="summary"><span class="undocumented">Undocumented</span></div>
+          </li><li id="dire_jax.hpindex.HPIndex.knn_tiled">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpindex<wbr></wbr>.<wbr></wbr>HPIndex<wbr></wbr>.knn<wbr></wbr>_tiled</div>
+            <div class="url">dire_jax.hpindex.HPIndex.html#knn_tiled</div>
+            <div class="type">Function</div>
+            <div class="kind">Static Method</div>
+            <div class="privacy">PUBLIC</div>
+            <div class="summary">Advanced implementation that tiles both database and query points. This wrapper handles the dynamic aspects before calling the JIT-compiled function.</div>
+          </li><li id="dire_jax.hpindex.HPIndex._knn_tiled_jit">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpindex<wbr></wbr>.<wbr></wbr>HPIndex<wbr></wbr>._knn<wbr></wbr>_tiled<wbr></wbr>_jit</div>
+            <div class="url">dire_jax.hpindex.HPIndex.html#_knn_tiled_jit</div>
+            <div class="type">Function</div>
+            <div class="kind">Static Method</div>
+            <div class="privacy">PRIVATE</div>
+            <div class="summary">JIT-compiled implementation of tiled KNN with concrete batch parameters.</div>
+          </li><li id="dire_jax.hpindex._compute_batch_distances">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.hpindex<wbr></wbr>._compute<wbr></wbr>_batch<wbr></wbr>_distances</div>
+            <div class="url">dire_jax.hpindex.html#_compute_batch_distances</div>
+            <div class="type">Function</div>
+            <div class="kind">Function</div>
+            <div class="privacy">PRIVATE</div>
+            <div class="summary">Compute the squared distances between a batch of query points and all database points.</div>
           </li><li id="dire_jax.dire.DiRe">
             
             <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re</div>
@@ -300,18 +348,34 @@
             <div class="kind">Instance Variable</div>
             <div class="privacy">PUBLIC</div>
             <div class="summary">Dimension of data</div>
-          </li><li id="dire_jax.dire.DiRe.distances">
+          </li><li id="dire_jax.dire.DiRe.distances_np">
             
-            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re<wbr></wbr>.distances</div>
-            <div class="url">dire_jax.dire.DiRe.html#distances</div>
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re<wbr></wbr>.distances<wbr></wbr>_np</div>
+            <div class="url">dire_jax.dire.DiRe.html#distances_np</div>
+            <div class="type">Attribute</div>
+            <div class="kind">Instance Variable</div>
+            <div class="privacy">PUBLIC</div>
+            <div class="summary"><span class="undocumented">Undocumented</span></div>
+          </li><li id="dire_jax.dire.DiRe.distances_jax">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re<wbr></wbr>.distances<wbr></wbr>_jax</div>
+            <div class="url">dire_jax.dire.DiRe.html#distances_jax</div>
             <div class="type">Attribute</div>
             <div class="kind">Instance Variable</div>
             <div class="privacy">PUBLIC</div>
             <div class="summary">Distances in the kNN graph</div>
-          </li><li id="dire_jax.dire.DiRe.indices">
+          </li><li id="dire_jax.dire.DiRe.indices_np">
             
-            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re<wbr></wbr>.indices</div>
-            <div class="url">dire_jax.dire.DiRe.html#indices</div>
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re<wbr></wbr>.indices<wbr></wbr>_np</div>
+            <div class="url">dire_jax.dire.DiRe.html#indices_np</div>
+            <div class="type">Attribute</div>
+            <div class="kind">Instance Variable</div>
+            <div class="privacy">PUBLIC</div>
+            <div class="summary"><span class="undocumented">Undocumented</span></div>
+          </li><li id="dire_jax.dire.DiRe.indices_jax">
+            
+            <div class="fullName">dire<wbr></wbr>_jax<wbr></wbr>.dire<wbr></wbr>.<wbr></wbr>Di<wbr></wbr>Re<wbr></wbr>.indices<wbr></wbr>_jax</div>
+            <div class="url">dire_jax.dire.DiRe.html#indices_jax</div>
             <div class="type">Attribute</div>
             <div class="kind">Instance Variable</div>
             <div class="privacy">PUBLIC</div>
