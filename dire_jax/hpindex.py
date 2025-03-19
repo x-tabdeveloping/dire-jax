@@ -2,8 +2,6 @@
 
 """
 A JAX-based implementation for efficient k-nearest neighbors.
-Uses batching / tiling to efficiently handle large datasets with
-limited memory usage.
 """
 
 from functools import partial
@@ -12,6 +10,11 @@ import jax.numpy as jnp
 
 
 class HPIndex:
+
+    """
+    A kernelized kNN index that uses batching / tiling to efficiently handle
+    large datasets with limited memory usage.
+    """
 
     def __init__(self):
         pass
