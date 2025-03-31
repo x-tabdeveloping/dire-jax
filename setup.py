@@ -6,9 +6,9 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 # Comment on utils extra
-print("For benchmarking, metrics and utilities, use [utils] extra.")
+print("For benchmarking, metrics and utilities, use the [utils] extra.")
 
-# Core dependencies (dire.py)
+# Core dependencies (dire.py and hpindex.py)
 core_deps = [
     "jax",
     "numpy",
@@ -25,7 +25,7 @@ utils_deps = [
     "ripser",
     "persim",
     "fastdtw",
-    "pytwed",
+    "fast-twed",
     "pot"
 ]
 
@@ -46,7 +46,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=core_deps,
     extras_require={
         "utils": utils_deps,

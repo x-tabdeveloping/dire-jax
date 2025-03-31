@@ -15,7 +15,7 @@ from jax import jit, lax, random, device_get
 import ot
 from ripser import ripser
 from fastdtw import fastdtw
-from pytwed import twed
+from twed import twed
 from persim import wasserstein, bottleneck
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -467,7 +467,12 @@ def compute_twed(axis_x_hd, axis_y_hd, axis_x_ld, axis_y_ld, norm_factor=1.0):
     float: Normalized TWED distance between two Betti curves.
     """
 
-    dist_twed = twed(axis_y_hd, axis_y_ld, axis_x_hd, axis_x_ld, p=2, fast=True)
+    dist_twed = twed(axis_y_hd.reshape(-1, 1),
+                     axis_y_ld.reshape(-1, 1),
+                     axis_x_hd,
+                     axis_x_ld,
+                     p=2,
+                     )
     dist_twed *= norm_factor
 
     return dist_twed

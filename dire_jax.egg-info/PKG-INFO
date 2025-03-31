@@ -8,7 +8,7 @@ Author-email: akolpakov@uaustin.org, rivin@temple.edu
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: jax
@@ -23,7 +23,7 @@ Provides-Extra: utils
 Requires-Dist: ripser; extra == "utils"
 Requires-Dist: persim; extra == "utils"
 Requires-Dist: fastdtw; extra == "utils"
-Requires-Dist: pytwed; extra == "utils"
+Requires-Dist: fast-twed; extra == "utils"
 Requires-Dist: pot; extra == "utils"
 
 # DiRe - JAX

@@ -11,5 +11,5 @@ scikit-learn
 ripser
 persim
 fastdtw
-pytwed
+fast-twed
 pot
