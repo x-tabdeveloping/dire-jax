@@ -19,9 +19,6 @@ Requires-Dist: pandas
 Requires-Dist: plotly
 Requires-Dist: loguru
 Requires-Dist: scikit-learn
-Provides-Extra: cpu
-Requires-Dist: faiss-cpu; extra == "cpu"
-Provides-Extra: gpu
 Provides-Extra: utils
 Requires-Dist: ripser; extra == "utils"
 Requires-Dist: persim; extra == "utils"
@@ -37,33 +34,19 @@ We offer a new dimension reduction tool called DiRe - JAX that is benchmarked ag
 
 ### Quick start
 
-For CPU version, run
+Do either
 
 ```bash    
-pip install dire-jax[cpu]
+pip install dire-jax
 ```
 
-For GPU version, run
+if you need to install the main DiRe class only
 
 ```bash
-pip install dire-jax[gpu]
+pip install dire-jax[utils]
 ```
 
-and then install the latest GPU version of FAISS
-
-```bash
-conda install pytorch::faiss-gpu
-```
-
-In Google Colab you will likely need
-
-```python
-!pip install -q condacolab
-import condacolab
-condacolab.install()
-```
-
-before you install anything via Conda. 
+if you also need the benchmarking utilities. 
 
 Then, do the imports
 
@@ -108,17 +91,13 @@ The output should look similar to
 
 Our working paper is available in the repository. Also, check out the Jupyter notebook with benchmarking results.
 
-### Benchmarking and utilities 
 
-In order to run the Jupyter notebook in the ./tests folder, you need to install some extras. Either
+### Benchmarking and utilities
+
+In order to run the Jupyter notebook in the ./tests folder, you need to install some extras:
 ```bash
-pip install dire-jax[cpu,utils]
+pip install dire-jax[utils]
 ```
-or
-```bash
-pip install dire-jax[gpu,utils]
-```
-with all the steps described above to get the GPU version of FAISS afterwards.
 
 This installation will give you access to the utilities (metrics and benchmarking routines) that are 
 specifically implemented to be used together with DiRe. However, some of them rely on external packages (especially for

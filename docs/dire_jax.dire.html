@@ -32,7 +32,7 @@
       
       <div class="navlinks">
         <span class="navbar-brand">
-          DiRe JAX <a href="index.html">API Documentation</a>
+          Dimensionality Reduction with JAX <a href="index.html">API Documentation</a>
         </span>
 
         <a href="moduleIndex.html">
@@ -144,6 +144,16 @@
         
 
         
+            <div class="itemName"><code><a href="#compute_forces_kernel" class="internal-link" title="dire_jax.dire.compute_forces_kernel">compute<wbr></wbr>_forces<wbr></wbr>_kernel</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="#distribution_kernel" class="internal-link" title="dire_jax.dire.distribution_kernel">distribution<wbr></wbr>_kernel</a></code>
             </div>
         
@@ -164,7 +174,7 @@
         
 
         
-            <div class="itemName"><code><a href="#grad_coeff_att" class="internal-link" title="dire_jax.dire.grad_coeff_att">grad<wbr></wbr>_coeff<wbr></wbr>_att</a></code>
+            <div class="itemName"><code><a href="#jax_coeff_att" class="internal-link" title="dire_jax.dire.jax_coeff_att">jax<wbr></wbr>_coeff<wbr></wbr>_att</a></code>
             </div>
         
 
@@ -174,7 +184,7 @@
         
 
         
-            <div class="itemName"><code><a href="#grad_coeff_rep" class="internal-link" title="dire_jax.dire.grad_coeff_rep">grad<wbr></wbr>_coeff<wbr></wbr>_rep</a></code>
+            <div class="itemName"><code><a href="#jax_coeff_rep" class="internal-link" title="dire_jax.dire.jax_coeff_rep">jax<wbr></wbr>_coeff<wbr></wbr>_rep</a></code>
             </div>
         
 
@@ -194,41 +204,8 @@
         
          
 
-        <div class="childrenKindTitle">Variables</div>
-        <ul>
-    
-    <li class="">
         
-        
-        
-
-        
-            <div class="itemName"><code><a href="#vmap_coeff_att" class="internal-link" title="dire_jax.dire.vmap_coeff_att">vmap<wbr></wbr>_coeff<wbr></wbr>_att</a></code>
-            </div>
-        
-
-    </li><li class="">
-        
-        
-        
-
-        
-            <div class="itemName"><code><a href="#vmap_coeff_rep" class="internal-link" title="dire_jax.dire.vmap_coeff_rep">vmap<wbr></wbr>_coeff<wbr></wbr>_rep</a></code>
-            </div>
-        
-
-    </li><li class="">
-        
-        
-        
-
-        
-            <div class="itemName"><code><a href="#vmap_get_slice" class="internal-link" title="dire_jax.dire.vmap_get_slice">vmap<wbr></wbr>_get<wbr></wbr>_slice</a></code>
-            </div>
-        
-
-    </li>
-</ul> 
+         
 
         
          
@@ -264,6 +241,16 @@
 
         
             <div class="itemName"><code><a href="dire_jax.dire_utils.html" class="internal-link" title="dire_jax.dire_utils">dire<wbr></wbr>_utils</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="dire_jax.hpindex.html" class="internal-link" title="dire_jax.hpindex">hpindex</a></code>
             </div>
         
 
@@ -344,7 +331,7 @@
 
         <div class="moduleDocstring">
           <div><p>Provides the main class for dimensionality reduction.</p>
-<p>The DiRe (DImensionality REduction) class implements a modern approach to dimensionality reduction, leveraging JAX for efficient computation. It uses force-directed layout techniques combined with k-nearest neighbor graph construction to generate meaningful low-dimensional embeddings of high-dimensional data.</p>
+<p>The DiRe (Dimensionality Reduction) class implements a modern approach to dimensionality reduction, leveraging JAX for efficient computation. It uses force-directed layout techniques combined with k-nearest neighbor graph construction to generate meaningful low-dimensional embeddings of high-dimensional data.</p>
 </div>
         </div>
 
@@ -360,6 +347,11 @@
   </tr><tr class="function">
     
     <td>Function</td>
+    <td><code><a href="#compute_forces_kernel" class="internal-link" title="dire_jax.dire.compute_forces_kernel">compute<wbr></wbr>_forces<wbr></wbr>_kernel</a></code></td>
+    <td>JAX-optimized kernel for computing attractive and repulsive forces.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
     <td><code><a href="#distribution_kernel" class="internal-link" title="dire_jax.dire.distribution_kernel">distribution<wbr></wbr>_kernel</a></code></td>
     <td>Probability kernel that maps distances to similarity scores.</td>
   </tr><tr class="function">
@@ -370,33 +362,18 @@
   </tr><tr class="function">
     
     <td>Function</td>
-    <td><code><a href="#grad_coeff_att" class="internal-link" title="dire_jax.dire.grad_coeff_att">grad<wbr></wbr>_coeff<wbr></wbr>_att</a></code></td>
-    <td>Coefficient for attraction force based on distance.</td>
+    <td><code><a href="#jax_coeff_att" class="internal-link" title="dire_jax.dire.jax_coeff_att">jax<wbr></wbr>_coeff<wbr></wbr>_att</a></code></td>
+    <td>JAX-optimized attraction coefficient function.</td>
   </tr><tr class="function">
     
     <td>Function</td>
-    <td><code><a href="#grad_coeff_rep" class="internal-link" title="dire_jax.dire.grad_coeff_rep">grad<wbr></wbr>_coeff<wbr></wbr>_rep</a></code></td>
-    <td>Coefficient for repulsion force based on distance.</td>
+    <td><code><a href="#jax_coeff_rep" class="internal-link" title="dire_jax.dire.jax_coeff_rep">jax<wbr></wbr>_coeff<wbr></wbr>_rep</a></code></td>
+    <td>JAX-optimized repulsion coefficient function.</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#rand_directions" class="internal-link" title="dire_jax.dire.rand_directions">rand<wbr></wbr>_directions</a></code></td>
     <td>Sample unit vectors in random directions.</td>
-  </tr><tr class="variable">
-    
-    <td>Variable</td>
-    <td><code><a href="#vmap_coeff_att" class="internal-link" title="dire_jax.dire.vmap_coeff_att">vmap<wbr></wbr>_coeff<wbr></wbr>_att</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="variable">
-    
-    <td>Variable</td>
-    <td><code><a href="#vmap_coeff_rep" class="internal-link" title="dire_jax.dire.vmap_coeff_rep">vmap<wbr></wbr>_coeff<wbr></wbr>_rep</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="variable">
-    
-    <td>Variable</td>
-    <td><code><a href="#vmap_get_slice" class="internal-link" title="dire_jax.dire.vmap_get_slice">vmap<wbr></wbr>_get<wbr></wbr>_slice</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
   </tr>
 </table>
           
@@ -408,6 +385,52 @@
           <div class="basefunction">
   
   
+  <a name="dire_jax.dire.compute_forces_kernel">
+    
+  </a>
+  <a name="compute_forces_kernel">
+    
+  </a>
+  <div class="functionHeader">
+    
+    @functools.partial(<wbr></wbr>jax.jit, <wbr></wbr>static_argnums=(<wbr></wbr>4, <wbr></wbr>5, <wbr></wbr>6))<br />
+    <span class="py-keyword">def</span> <span class="py-defname">compute_forces_kernel</span><span class="function-signature">(positions, chunk_indices, neighbor_indices, sample_indices, a, b, alpha=1.0)</span>:
+    
+    <a class="headerLink" href="#compute_forces_kernel" title="dire_jax.dire.compute_forces_kernel">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="pre">JAX-optimized kernel for computing attractive and repulsive forces.
+
+Parameters
+----------
+positions : jax.numpy.ndarray
+    Current point positions
+chunk_indices : jax.numpy.ndarray
+    Current batch indices
+neighbor_indices : jax.numpy.ndarray
+    Indices of neighbors for attractive forces
+sample_indices : jax.numpy.ndarray
+    Indices of points for repulsive forces
+a : float
+    Attraction parameter
+b : float
+    Repulsion parameter
+alpha : float
+    Cooling factor that scales force magnitude
+
+Returns
+-------
+jax.numpy.ndarray
+    Net force vectors for each point</p></div>
+  </div>
+</div><div class="basefunction">
+  
+  
   <a name="dire_jax.dire.distribution_kernel">
     
   </a>
@@ -416,8 +439,8 @@
   </a>
   <div class="functionHeader">
     
-    @functools.partial(<wbr></wbr>jit, <wbr></wbr>static_argnums=(<wbr></wbr>1, <wbr></wbr>2))<br />
-    <span class="py-keyword">def</span> <span class="py-defname">distribution_kernel</span><span class="function-signature">(x, a, b)</span>:
+    @jax.jit<br />
+    <span class="py-keyword">def</span> <span class="py-defname">distribution_kernel</span><span class="function-signature">(dist, a, b)</span>:
     
     <a class="headerLink" href="#distribution_kernel" title="dire_jax.dire.distribution_kernel">
       
@@ -433,13 +456,13 @@ This is a rational function approximation of a t-distribution.
 
 Parameters
 ----------
-x : float or jax.numpy.ndarray
-    Distance value(s)
+dist : jax.numpy.ndarray
+    Distance values
 a : float
     Scale parameter that controls the steepness of the distribution
 b : float
     Shape parameter that controls the tail behavior
-    
+
 Returns
 -------
 float or jax.numpy.ndarray
@@ -486,18 +509,18 @@ jax.numpy.ndarray
 </div><div class="basefunction">
   
   
-  <a name="dire_jax.dire.grad_coeff_att">
+  <a name="dire_jax.dire.jax_coeff_att">
     
   </a>
-  <a name="grad_coeff_att">
+  <a name="jax_coeff_att">
     
   </a>
   <div class="functionHeader">
     
-    @functools.partial(<wbr></wbr>jit, <wbr></wbr>static_argnums=(<wbr></wbr>1, <wbr></wbr>2))<br />
-    <span class="py-keyword">def</span> <span class="py-defname">grad_coeff_att</span><span class="function-signature">(x, a, b)</span>:
+    @jax.jit<br />
+    <span class="py-keyword">def</span> <span class="py-defname">jax_coeff_att</span><span class="function-signature">(dist, a, b)</span>:
     
-    <a class="headerLink" href="#grad_coeff_att" title="dire_jax.dire.grad_coeff_att">
+    <a class="headerLink" href="#jax_coeff_att" title="dire_jax.dire.jax_coeff_att">
       
       
       ¶
@@ -505,37 +528,23 @@ jax.numpy.ndarray
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="pre">Coefficient for attraction force based on distance.
-
-Parameters
-----------
-x : float or jax.numpy.ndarray
-    Distance value(s)
-a : float
-    Scale parameter from the distribution kernel
-b : float
-    Shape parameter from the distribution kernel
-    
-Returns
--------
-float or jax.numpy.ndarray
-    Attraction coefficient(s)</p></div>
+    <div><p>JAX-optimized attraction coefficient function.</p></div>
   </div>
 </div><div class="basefunction">
   
   
-  <a name="dire_jax.dire.grad_coeff_rep">
+  <a name="dire_jax.dire.jax_coeff_rep">
     
   </a>
-  <a name="grad_coeff_rep">
+  <a name="jax_coeff_rep">
     
   </a>
   <div class="functionHeader">
     
-    @functools.partial(<wbr></wbr>jit, <wbr></wbr>static_argnums=(<wbr></wbr>1, <wbr></wbr>2))<br />
-    <span class="py-keyword">def</span> <span class="py-defname">grad_coeff_rep</span><span class="function-signature">(x, a, b)</span>:
+    @jax.jit<br />
+    <span class="py-keyword">def</span> <span class="py-defname">jax_coeff_rep</span><span class="function-signature">(dist, a, b)</span>:
     
-    <a class="headerLink" href="#grad_coeff_rep" title="dire_jax.dire.grad_coeff_rep">
+    <a class="headerLink" href="#jax_coeff_rep" title="dire_jax.dire.jax_coeff_rep">
       
       
       ¶
@@ -543,21 +552,7 @@ float or jax.numpy.ndarray
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="pre">Coefficient for repulsion force based on distance.
-
-Parameters
-----------
-x : float or jax.numpy.ndarray
-    Distance value(s)
-a : float
-    Scale parameter from the distribution kernel
-b : float
-    Shape parameter from the distribution kernel
-    
-Returns
--------
-float or jax.numpy.ndarray
-    Repulsion coefficient(s), negative to push points apart</p></div>
+    <div><p>JAX-optimized repulsion coefficient function.</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -597,78 +592,6 @@ Returns
 jax.numpy.ndarray
     Array of shape (num, dim) containing unit vectors</p></div>
   </div>
-</div><div class="basevariable">
-  
-  
-  <a name="dire_jax.dire.vmap_coeff_att">
-    
-  </a>
-  <a name="vmap_coeff_att">
-    
-  </a>
-  <div class="functionHeader">
-    
-    <span class="py-defname">vmap_coeff_att</span> =
-    
-    <a class="headerLink" href="#vmap_coeff_att" title="dire_jax.dire.vmap_coeff_att">
-      
-      
-      ¶
-    </a>
-  </div>
-  <div class="functionBody">
-    
-    <div><p class="undocumented">Undocumented</p></div>
-    
-  </div>
-</div><div class="basevariable">
-  
-  
-  <a name="dire_jax.dire.vmap_coeff_rep">
-    
-  </a>
-  <a name="vmap_coeff_rep">
-    
-  </a>
-  <div class="functionHeader">
-    
-    <span class="py-defname">vmap_coeff_rep</span> =
-    
-    <a class="headerLink" href="#vmap_coeff_rep" title="dire_jax.dire.vmap_coeff_rep">
-      
-      
-      ¶
-    </a>
-  </div>
-  <div class="functionBody">
-    
-    <div><p class="undocumented">Undocumented</p></div>
-    
-  </div>
-</div><div class="basevariable">
-  
-  
-  <a name="dire_jax.dire.vmap_get_slice">
-    
-  </a>
-  <a name="vmap_get_slice">
-    
-  </a>
-  <div class="functionHeader">
-    
-    <span class="py-defname">vmap_get_slice</span> =
-    
-    <a class="headerLink" href="#vmap_get_slice" title="dire_jax.dire.vmap_get_slice">
-      
-      
-      ¶
-    </a>
-  </div>
-  <div class="functionBody">
-    
-    <div><p class="undocumented">Undocumented</p></div>
-    
-  </div>
 </div>
         </div>
       
@@ -679,9 +602,9 @@ jax.numpy.ndarray
 
   
   <div class="container-fluid">
-    <a href="index.html">API Documentation</a> for DiRe JAX,
+    <a href="index.html">API Documentation</a> for Dimensionality Reduction with JAX,
   generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
-    24.11.2 at 2025-03-16 13:30:32.
+    24.11.2 at 2025-03-30 21:51:25.
   </div>
 
   <!-- Search related scripts needs to be loaded at the end of HTML 

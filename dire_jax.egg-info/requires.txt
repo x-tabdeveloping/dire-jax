@@ -7,11 +7,6 @@ plotly
 loguru
 scikit-learn
 
-[cpu]
-faiss-cpu
-
-[gpu]
-
 [utils]
 ripser
 persim
