@@ -3,7 +3,7 @@
 """
 Provides the main class for dimensionality reduction.
 
-The DiRe (DImensionality REduction) class implements a modern approach to 
+The DiRe (Dimensionality Reduction) class implements a modern approach to
 dimensionality reduction, leveraging JAX for efficient computation. It uses 
 force-directed layout techniques combined with k-nearest neighbor graph 
 construction to generate meaningful low-dimensional embeddings of 
@@ -45,7 +45,7 @@ from .hpindex import HPIndex
 
 
 #
-# Main class for DImension REduction
+# Main class for Dimensionality Reduction
 #
 class DiRe:
     """
@@ -169,33 +169,33 @@ class DiRe:
         """ Sample size for attraction """
         self.neg_ratio = neg_ratio
         """ Ratio for repulsion sample size """
-        self.init_embedding = None
+        self._init_embedding = None
         """ Initial embedding """
-        self.layout = None
+        self._layout = None
         """ Layout output """
-        self.a = None
+        self._a = None
         """ Probability kernel parameter """
-        self.b = None
+        self._b = None
         """ Probability kernel parameter """
-        self.data = None
+        self._data = None
         """ Higher-dimensional data """
-        self.n_samples = None
+        self._n_samples = None
         """ Number of data points """
-        self.data_dim = None
+        self._data_dim = None
         """ Dimension of data """
-        self.distances_np = None
-        self.distances_jax = None
+        self._distances_np = None
+        self._distances_jax = None
         """ Distances in the kNN graph """
-        self.indices_np = None
-        self.indices_jax = None
+        self._indices_np = None
+        self._indices_jax = None
         """ Neighbor indices in the kNN graph """
-        self.nearest_neighbor_distances = None
+        self._nearest_neighbor_distances = None
         """ Neighbor indices in the kNN graph, excluding the point itself """
-        self.row_idx = None
+        self._row_idx = None
         """ Row indices for nearest neighbors """
-        self.col_idx = None
+        self._col_idx = None
         """ Column indices for nearest neighbors """
-        self.adjacency = None
+        self._adjacency = None
         """ kNN adjacency matrix """
         #
         if my_logger is None:
@@ -255,14 +255,14 @@ class DiRe:
         #
         self.logger.info('fit ...')
         #
-        self.data = data
+        self._data = data
 
-        self.n_samples = self.data.shape[0]
-        self.data_dim = self.data.shape[1]
+        self._n_samples = self._data.shape[0]
+        self._data_dim = self._data.shape[1]
 
         self.make_knn_adjacency()
 
-        self.a, self.b = self.find_ab_params(self.min_dist, self.spread)
+        self._a, self._b = self.find_ab_params(self.min_dist, self.spread)
         #
         self.logger.info('fit done ...')
         #
@@ -315,7 +315,7 @@ class DiRe:
 
         self.logger.info('transform done ...')
 
-        return self.layout
+        return self._layout
 
     def fit_transform(self, data):
         """
@@ -343,8 +343,8 @@ class DiRe:
         separately, as it avoids storing intermediate results.
         """
         # Store the data and perform fitting (build kNN graph)
-        self.data = data
-        self.fit(self.data)
+        self._data = data
+        self.fit(self._data)
 
         # Transform the data (create initial embedding and optimize layout)
         return self.transform()
@@ -379,44 +379,44 @@ class DiRe:
         self.logger.info('make_knn_adjacency ...')
 
         # Ensure data is in the right format for HPIndex
-        self.data = np.ascontiguousarray(self.data.astype(np.float32))
+        self._data = np.ascontiguousarray(self._data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
 
         # Determine appropriate batch size for memory efficiency
         if batch_size is None:
             # Heuristic: For very large datasets, use smaller batches
-            if self.n_samples > 131072:
+            if self._n_samples > 131072:
                 batch_size = 4096
-            elif self.n_samples > 32768:
+            elif self._n_samples > 32768:
                 batch_size = 8192
             else:
-                batch_size = self.n_samples  # Process all at once for small datasets
+                batch_size = self._n_samples  # Process all at once for small datasets
 
         self.logger.info(f'Using batch size: {batch_size}')
 
-        indices_jax, distances_jax = HPIndex.knn_tiled(
-            self.data, self.data, n_neighbors, batch_size, batch_size)
+        self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
+            self._data, self._data, n_neighbors, batch_size, batch_size)
 
-        # Store results in jax
-        self.indices_jax = indices_jax.block_until_ready()
-        self.distances_jax = distances_jax.block_until_ready()
+        # Wait until ready
+        self._indices_jax.block_until_ready()
+        self._distances_jax.block_until_ready()
 
         # Store results in numpy
-        self.indices_np = device_get(self.indices_jax)
-        self.distances_np = device_get(self.distances_jax)
+        self._indices_np = device_get(self._indices_jax)
+        self._distances_np = device_get(self._distances_jax)
 
         # Extract nearest neighbor distances (excluding self)
-        self.nearest_neighbor_distances = self.distances_np[:, 1:]
+        self._nearest_neighbor_distances = self._distances_np[:, 1:]
 
         # Create indices for sparse matrix construction
-        self.row_idx = np.repeat(np.arange(self.n_samples), n_neighbors)
-        self.col_idx = self.indices_np.ravel()
+        self._row_idx = np.repeat(np.arange(self._n_samples), n_neighbors)
+        self._col_idx = self._indices_np.ravel()
 
         # Create sparse adjacency matrix (memory efficient)
-        data_values = self.distances_np.ravel()
-        self.adjacency = csr_matrix(
-            (data_values, (self.row_idx, self.col_idx)),
-            shape=(self.n_samples, self.n_samples)
+        data_values = self._distances_np.ravel()
+        self._adjacency = csr_matrix(
+            (data_values, (self._row_idx, self._col_idx)),
+            shape=(self._n_samples, self._n_samples)
         )
 
         # Clean up resources
@@ -448,12 +448,12 @@ class DiRe:
                 n_components=self.dimension,
                 kernel=self.pca_kernel
             )
-            self.init_embedding = pca.fit_transform(self.data)
+            self._init_embedding = pca.fit_transform(self._data)
         else:
             # Use standard PCA for linear dimensionality reduction
             self.logger.info('Using standard PCA embedding...')
             pca = PCA(n_components=self.dimension)
-            self.init_embedding = pca.fit_transform(self.data)
+            self._init_embedding = pca.fit_transform(self._data)
 
         self.logger.info('do_pca_embedding done ...')
 
@@ -477,14 +477,14 @@ class DiRe:
         if self.sim_kernel is not None:
             self.logger.info('Applying similarity kernel to adjacency matrix...')
             # Transform distances using the similarity kernel
-            data_values = self.sim_kernel(self.adjacency.data)
+            data_values = self.sim_kernel(self._adjacency.data)
             # Create a new adjacency matrix with transformed values
             adj_mat = csr_matrix(
-                (data_values, (self.row_idx, self.col_idx)),
-                shape=(self.n_samples, self.n_samples)
+                (data_values, (self._row_idx, self._col_idx)),
+                shape=(self._n_samples, self._n_samples)
             )
         else:
-            adj_mat = self.adjacency
+            adj_mat = self._adjacency
 
         # Make the adjacency matrix symmetric by adding it to its transpose
         symmetric_adj = adj_mat + adj_mat.T
@@ -497,7 +497,7 @@ class DiRe:
         _, eigenvectors = eigsh(lap, k, which='SM')
 
         # Skip the first eigenvector (corresponds to constant function)
-        self.init_embedding = eigenvectors[:, 1:k]
+        self._init_embedding = eigenvectors[:, 1:k]
 
         self.logger.info('do_spectral_embedding done ...')
 
@@ -520,14 +520,14 @@ class DiRe:
 
         # Create a random projection matrix
         key = random.PRNGKey(13)  # Fixed seed for reproducibility
-        rand_basis = random.normal(key, (self.dimension, self.data_dim))
+        rand_basis = random.normal(key, (self.dimension, self._data_dim))
 
         # Move data and projection matrix to device memory
-        data_matrix = device_put(self.data)
+        data_matrix = device_put(self._data)
         rand_basis = device_put(rand_basis)
 
         # Project data onto random basis
-        self.init_embedding = data_matrix @ rand_basis.T
+        self._init_embedding = data_matrix @ rand_basis.T
 
         self.logger.info('do_random_embedding done ...')
 
@@ -592,6 +592,7 @@ class DiRe:
             indices_sort = jnp.argsort(arr_proj)
 
             # For each point, take n_samples points around it in sorted order
+            vmap_get_slice = vmap(get_slice, in_axes=(None, None, 0))
             indices = vmap_get_slice(indices_sort, n_samples, jnp.arange(arr_len))
 
             # Reorder indices back to original ordering
@@ -616,13 +617,10 @@ class DiRe:
     #
     # Create layout using force-directed optimization
     #
-    #
-    # Create layout using force-directed optimization
-    #
 
     def do_layout(self, large_dataset_mode=None, force_cpu=False):
         """
-        Optimize the layout using force-directed placement.
+        Optimize the layout using force-directed placement with JAX kernels.
 
         This method takes the initial embedding and iteratively refines it using
         attractive and repulsive forces to create a meaningful low-dimensional
@@ -650,38 +648,34 @@ class DiRe:
         num_iterations = self.max_iter_layout
 
         # Handle automatic batch size calculation if needed
-        batch_size = self.sample_size
-        if batch_size == 'auto':
+        sample_size = self.sample_size
+        if sample_size == 'auto':
             # Scale batch size based on dataset size and neighborhood size
-            batch_size = int(self.n_neighbors * np.log(self.n_samples))
+            sample_size = int(self.n_neighbors * np.log(self._n_samples))
             # Ensure batch size is reasonable (not too small or large)
-            batch_size = max(min(512, batch_size), 32)
+            sample_size = max(min(512, sample_size), 32)
 
         # Determine if we should use memory-efficient mode for large datasets
         if large_dataset_mode is None:
-            large_dataset_mode = self.n_samples > 65536
-
-        if large_dataset_mode:
-            self.logger.info("Using memory-efficient mode for large dataset")
-
-        self.logger.info(f"Using batch size: {batch_size}")
+            large_dataset_mode = ((self._n_samples > 65536) or
+                                  (jax.devices()[0].platform == 'tpu'))
 
         # Other parameters
         n_dirs = self.n_sample_dirs
         neg_ratio = self.neg_ratio
 
-        force_cpu = large_dataset_mode and (jax.devices()[0].platform == 'tpu')
+        # we shall use force_cpu only as a flag passed to the routine
+        # force_cpu = force_cpu or large_dataset_mode and (jax.devices()[0].platform == 'tpu')
 
         # Initialize and normalize positions
-
         if force_cpu:
             self.logger.info("Forcing computations on CPU")
             cpu_device = jax.devices('cpu')[0]
-            init_pos_jax = device_put(self.init_embedding, device=cpu_device)
-            indices_jax = device_put(self.indices_np, device=cpu_device)
+            init_pos_jax = device_put(self._init_embedding, device=cpu_device)
+            neighbor_indices_jax = device_put(self._indices_np, device=cpu_device)
         else:
-            init_pos_jax = device_put(self.init_embedding)
-            indices_jax = device_put(self.indices_jax)
+            init_pos_jax = device_put(self._init_embedding)
+            neighbor_indices_jax = device_put(self._indices_jax)
 
         init_pos_jax -= init_pos_jax.mean(axis=0)  # Center positions
         init_pos_jax /= init_pos_jax.std(axis=0)  # Normalize variance
@@ -694,37 +688,40 @@ class DiRe:
             logger.debug(f'Iteration {iter_id + 1}')
 
             # Sample random points for repulsion
-            indices_emb_jax = self.do_rand_sampling(
+            sample_indices_jax = self.do_rand_sampling(
                 key,
                 init_pos_jax,
-                batch_size,
+                sample_size,
                 n_dirs,
                 neg_ratio
             )
 
             if force_cpu:
                 cpu_device = jax.devices('cpu')[0]
-                indices_emb_jax = device_put(indices_emb_jax, device=cpu_device)
+                sample_indices_jax = device_put(sample_indices_jax, device=cpu_device)
             else:
-                indices_emb_jax = device_put(indices_emb_jax)
+                sample_indices_jax = device_put(sample_indices_jax)
 
             # Split computation for memory efficiency if needed
-            if large_dataset_mode and self.n_samples > 131072:
+            if large_dataset_mode:
                 # Process in chunks to reduce peak memory usage
-                chunk_size = min(16384, self.n_samples)
+                chunk_size = min(8192, self._n_samples)
                 all_forces = []
 
-                self.logger.info(f"Attempting memory tiling with tile size: {chunk_size}")
+                self.logger.info(f"Using memory tiling with tile size: {chunk_size}")
 
-                for chunk_start in range(0, self.n_samples, chunk_size):
-                    chunk_end = min(chunk_start + chunk_size, self.n_samples)
-                    chunk_indices = slice(chunk_start, chunk_end)
+                for chunk_start in range(0, self._n_samples, chunk_size):
+                    chunk_end = min(chunk_start + chunk_size, self._n_samples)
+                    chunk_indices = jnp.arange(chunk_start, chunk_end)
 
-                    # Process this chunk
-                    chunk_force = self._compute_forces(
+                    # Process this chunk using our kernelized function
+                    chunk_force = compute_forces_kernel(
                         init_pos_jax,
-                        indices_jax[chunk_indices],
-                        indices_emb_jax[chunk_indices],
+                        chunk_indices,
+                        neighbor_indices_jax[chunk_indices],
+                        sample_indices_jax[chunk_indices],
+                        self._a,
+                        self._b,
                         alpha=1.0 - iter_id / num_iterations
                     )
 
@@ -738,10 +735,13 @@ class DiRe:
 
             else:
                 # Process all points at once for smaller datasets
-                net_force = self._compute_forces(
+                net_force = compute_forces_kernel(
                     init_pos_jax,
-                    indices_jax,
-                    indices_emb_jax,
+                    jnp.arange(self._n_samples),
+                    neighbor_indices_jax,
+                    sample_indices_jax,
+                    self._a,
+                    self._b,
                     alpha=1.0 - iter_id / num_iterations
                 )
 
@@ -762,89 +762,49 @@ class DiRe:
         init_pos_jax /= init_pos_jax.std(axis=0)
 
         # Store final layout
-        self.layout = np.asarray(init_pos_jax)
+        self._layout = np.asarray(init_pos_jax)
 
         # Clear any cached values to free memory
         gc.collect()
 
         self.logger.info('do_layout done ...')
 
-    def _compute_forces(self, positions, neighbor_indices, sample_indices, alpha=1.0):
+    # Modified _compute_forces method to use the kernel
+    def _compute_forces(self, positions, chunk_indices, neighbor_indices, sample_indices, alpha=1.0):
         """
-        Compute attractive and repulsive forces for points.
-        
-        This is an internal helper method used by do_layout to compute the
-        forces that determine how points move during optimization.
-        
+        Compute attractive and repulsive forces for points using JAX kernels.
+
+        This method uses JAX-optimized kernels to efficiently compute forces
+        between points during layout optimization.
+
         Parameters
         ----------
         positions : jax.numpy.ndarray
             Current point positions
+        chunk_indices : jax.numpy.ndarray
+            Current batch indices
         neighbor_indices : jax.numpy.ndarray
             Indices of neighbors for attractive forces
         sample_indices : jax.numpy.ndarray
             Indices of points for repulsive forces
         alpha : float
             Cooling factor that scales force magnitude
-            
+
         Returns
         -------
         jax.numpy.ndarray
             Net force vectors for each point
         """
-        # ===== Attraction Forces =====
-        # Points are attracted to their high-dimensional neighbors
-
-        # Prepare positions and compute distances
-        v_pos = positions[:, None, :]  # Shape: [n_samples, 1, dimension]
-        u_pos = positions[neighbor_indices]  # Shape: [n_samples, n_neighbors, dimension]
-
-        # Compute position differences and distances
-        position_diff = u_pos - v_pos
-        distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
-
-        # Create mask to avoid division by zero
-        mask = distance_geom > 0
-
-        # Compute normalized direction vectors
-        direction = jnp.where(mask, position_diff / distance_geom, 0.0)
-
-        # Compute attraction forces with repulsion term
-        # The repulsion term ensures that high-dimensional neighbors
-        # aren't also pushed apart by the general repulsion phase
-        grad_coeff_att_vals = jnp.where(
-            mask,
-            1.0 * vmap_coeff_att(distance_geom, self.a, self.b) -
-            1.0 * vmap_coeff_rep(distance_geom, self.a, self.b),
-            0.0
+        # Call the JAX-optimized kernel
+        return compute_forces_kernel(
+            positions,
+            chunk_indices,
+            neighbor_indices,
+            sample_indices,
+            self._a,
+            self._b,
+            alpha
         )
-
-        # Sum forces from all neighbors for each point
-        attraction_force = jnp.sum(grad_coeff_att_vals * direction, axis=1)
-
-        # ===== Repulsion Forces =====
-        # Points are repelled from randomly sampled points
-
-        # Use sampled indices for repulsion
-        u_pos = positions[sample_indices]
-        position_diff = u_pos - v_pos  # Reuse v_pos
-        distance_geom = jnp.linalg.norm(position_diff, axis=2, keepdims=True)
-
-        # Create mask for non-zero distances
-        mask = distance_geom > 0
-        direction = jnp.where(mask, position_diff / distance_geom, 0.0)
-
-        # Compute repulsion forces
-        grad_coeff_rep_vals = jnp.where(
-            mask,
-            vmap_coeff_rep(distance_geom, self.a, self.b),
-            0.0
-        )
-        repulsion_force = jnp.sum(grad_coeff_rep_vals * direction, axis=1)
-
-        # ===== Combine Forces =====
-        # Combine attraction and repulsion, with cooling factor alpha
-        return alpha * (attraction_force + repulsion_force)
 
     #
     # Visualize the layout
@@ -889,7 +849,7 @@ class DiRe:
         For both 2D and 3D, hover over points to see their coordinates and labels.
         """
         # Check if layout is available
-        if self.layout is None:
+        if self._layout is None:
             self.logger.warning('visualize ERROR: no layout available')
             return None
 
@@ -911,7 +871,7 @@ class DiRe:
             self.logger.info('visualize: 2D ...')
 
             # Create dataframe for plotting
-            datadf = pd.DataFrame(self.layout, columns=['x', 'y'])
+            datadf = pd.DataFrame(self._layout, columns=['x', 'y'])
 
             # Add labels if provided
             if labels is not None:
@@ -929,8 +889,8 @@ class DiRe:
             fig.update_layout(
                 width=width,
                 height=height,
-                xaxis_title='Dimension 1',
-                yaxis_title='Dimension 2',
+                xaxis_title='x',
+                yaxis_title='y',
             )
 
         # Create 3D visualization
@@ -938,7 +898,7 @@ class DiRe:
             self.logger.info('visualize: 3D ...')
 
             # Create dataframe for plotting
-            datadf = pd.DataFrame(self.layout, columns=['x', 'y', 'z'])
+            datadf = pd.DataFrame(self._layout, columns=['x', 'y', 'z'])
 
             # Add labels if provided
             if labels is not None:
@@ -976,80 +936,128 @@ class DiRe:
 
 
 #
+# Kernel for force-directed layout
+#
+
+@functools.partial(jax.jit, static_argnums=(4, 5, 6))
+def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_indices, a, b, alpha=1.0):
+    """
+    JAX-optimized kernel for computing attractive and repulsive forces.
+
+    Parameters
+    ----------
+    positions : jax.numpy.ndarray
+        Current point positions
+    chunk_indices : jax.numpy.ndarray
+        Current batch indices
+    neighbor_indices : jax.numpy.ndarray
+        Indices of neighbors for attractive forces
+    sample_indices : jax.numpy.ndarray
+        Indices of points for repulsive forces
+    a : float
+        Attraction parameter
+    b : float
+        Repulsion parameter
+    alpha : float
+        Cooling factor that scales force magnitude
+
+    Returns
+    -------
+    jax.numpy.ndarray
+        Net force vectors for each point
+    """
+
+    # ===== Attraction Forces =====
+    def compute_attraction(chunk_idx, neighbors_idx):
+        # Get positions of current point and its neighbors
+        point_pos = positions[chunk_idx]
+        neighbor_pos = positions[neighbors_idx]
+
+        # Compute position differences and distances
+        diff = neighbor_pos - point_pos
+        dist = jnp.linalg.norm(diff, axis=1, keepdims=True)
+
+        # Avoid division by zero
+        mask = dist > 0
+        direction = jnp.where(mask, diff / dist, 0.0)
+
+        # Compute attraction-repulsion coefficients
+        grad_coeff = jnp.where(
+            mask,
+            1.0 * jax_coeff_att(dist, a, b) + 1.0 * jax_coeff_rep(dist, a, b),
+            0.0
+        )
+
+        # Sum forces from all neighbors
+        return jnp.sum(grad_coeff * direction, axis=0)
+
+    # ===== Repulsion Forces =====
+    def compute_repulsion(chunk_idx, sample_idx):
+        # Get positions of current point and sampled points
+        point_pos = positions[chunk_idx]
+        sample_pos = positions[sample_idx]
+
+        # Compute position differences and distances
+        diff = sample_pos - point_pos
+        dist = jnp.linalg.norm(diff, axis=1, keepdims=True)
+
+        # Avoid division by zero
+        mask = dist > 0
+        direction = jnp.where(mask, diff / dist, 0.0)
+
+        # Compute repulsion coefficients
+        grad_coeff = jnp.where(mask, jax_coeff_rep(dist, a, b), 0.0)
+
+        # Sum forces from all sampled points
+        return jnp.sum(grad_coeff * direction, axis=0)
+
+    # Vectorize force computation across all points
+    attraction_forces = vmap(compute_attraction)(chunk_indices, neighbor_indices)
+    repulsion_forces = vmap(compute_repulsion)(chunk_indices, sample_indices)
+
+    # Combine forces with cooling factor
+    return alpha * (attraction_forces + repulsion_forces)
 
 
 #
 # Auxiliary functions for force-directed layout
 #
 
-@functools.partial(jit, static_argnums=(1, 2))
-def distribution_kernel(x, a, b):
+@jax.jit
+def distribution_kernel(dist, a, b):
     """
     Probability kernel that maps distances to similarity scores.
-    
+
     This is a rational function approximation of a t-distribution.
-    
+
     Parameters
     ----------
-    x : float or jax.numpy.ndarray
-        Distance value(s)
+    dist : jax.numpy.ndarray
+        Distance values
     a : float
         Scale parameter that controls the steepness of the distribution
     b : float
         Shape parameter that controls the tail behavior
-        
+
     Returns
     -------
     float or jax.numpy.ndarray
         Similarity score(s) between 0 and 1
     """
-    return 1.0 / (1.0 + a * x ** (2 * b))
+    return 1.0 / (1.0 + a * dist ** (2 * b))
 
 
-@functools.partial(jit, static_argnums=(1, 2))
-def grad_coeff_att(x, a, b):
-    """
-    Coefficient for attraction force based on distance.
-    
-    Parameters
-    ----------
-    x : float or jax.numpy.ndarray
-        Distance value(s)
-    a : float
-        Scale parameter from the distribution kernel
-    b : float
-        Shape parameter from the distribution kernel
-        
-    Returns
-    -------
-    float or jax.numpy.ndarray
-        Attraction coefficient(s)
-    """
-    y = distribution_kernel(1.0 / x, a, b)
-    return 1.0 * y
+# Helper functions for force calculations
+@jax.jit
+def jax_coeff_att(dist, a, b):
+    """JAX-optimized attraction coefficient function."""
+    return 1.0 * distribution_kernel(1/dist, a, b)
 
 
-@functools.partial(jit, static_argnums=(1, 2))
-def grad_coeff_rep(x, a, b):
-    """
-    Coefficient for repulsion force based on distance.
-    
-    Parameters
-    ----------
-    x : float or jax.numpy.ndarray
-        Distance value(s)
-    a : float
-        Scale parameter from the distribution kernel
-    b : float
-        Shape parameter from the distribution kernel
-        
-    Returns
-    -------
-    float or jax.numpy.ndarray
-        Repulsion coefficient(s), negative to push points apart
-    """
-    y = distribution_kernel(x, a, b)
-    return -1.0 * y
+@jax.jit
+def jax_coeff_rep(dist, a, b):
+    """JAX-optimized repulsion coefficient function."""
+    return -1.0 * distribution_kernel(dist, a, b)
 
 
 @functools.partial(jit, static_argnums=(1, 2))
@@ -1096,9 +1104,3 @@ def get_slice(arr, k, i):
         Slice of the input array
     """
     return lax.dynamic_slice(arr, (i - k // 2,), (k,))
-
-
-# Vectorized functions for efficient parallel computation
-vmap_coeff_att = vmap(grad_coeff_att, in_axes=(0, None, None))
-vmap_coeff_rep = vmap(grad_coeff_rep, in_axes=(0, None, None))
-vmap_get_slice = vmap(get_slice, in_axes=(None, None, 0))
