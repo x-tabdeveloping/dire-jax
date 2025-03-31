@@ -4,7 +4,6 @@ setup.py
 dire_jax/__init__.py
 dire_jax/dire.py
 dire_jax/dire_utils.py
-dire_jax/hpindex.py
 dire_jax/hpmetrics.py
 dire_jax.egg-info/PKG-INFO
 dire_jax.egg-info/SOURCES.txt
