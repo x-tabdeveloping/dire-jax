@@ -148,10 +148,6 @@ def make_knn_graph(data, n_neighbors, batch_size=None):
         else:
             batch_size = min(8192, n_samples)
 
-    print(f"num samples {n_samples}")
-    print(f"num neighbors {n_neighbors}")
-    print(f"batch size {batch_size}")
-
     # Convert data to the required format for kNN search
     data_np = np.ascontiguousarray(data.astype(np.float32))
 
@@ -192,7 +188,6 @@ def compute_stress(data, layout, n_neighbors, eps=1e-6):
     """
 
     # Computing kNN distances and indices for higher-dimensional data
-    print("compute stress")
     distances, indices = make_knn_graph(data, n_neighbors)
 
     # HPIndex returns L2 distances squared (sic!)
@@ -244,13 +239,11 @@ def compute_neighbor_score(data, layout, n_neighbors):
     """
 
     # Computing kNN indices for higher-dimensional data
-    print("compute neighbor score data")
     _, indices_data = make_knn_graph(data, n_neighbors)
     # Removing self from the set of indices
     indices_data = indices_data[:, 1:]
 
     # Computing kNN indices for the layout
-    print("compute neighbor score layout")
     _, indices_embed = make_knn_graph(layout, n_neighbors)
     # Removing self from the set of indices
     indices_embed = indices_embed[:, 1:]
@@ -301,8 +294,6 @@ def compute_local_metrics(data, layout, n_neighbors, memory_efficient=None):
         indices = np.random.choice(data.shape[0], sample_size, replace=False)
         data_sample = data[indices]
         layout_sample = layout[indices]
-
-        print(f"Using subsampled data ({sample_size} points) for metrics computation")
 
         metrics = {'stress': compute_stress(data_sample, layout_sample, n_neighbors),
                    'neighbor': compute_neighbor_score(data_sample, layout_sample, n_neighbors),
@@ -899,14 +890,12 @@ def compute_quality_measures(data, layout, n_neighbors=None):
         n_neighbors = min(13, int(np.log(n_samples)))
     
     # High-dimensional distances and indices
-    print("quality measures data")
     hd_indices, hd_distances = make_knn_graph(data_np, n_neighbors)
     hd_indices = hd_indices[:, 1:]  # Skip the first column (self)
     hd_distances = hd_distances[:, 1:]  # Skip the first column (self)
     hd_distances = np.sqrt(hd_distances)
 
     # Low-dimensional distances
-    print("quality measures layout")
     ld_indices, ld_distances = make_knn_graph(layout_np, n_neighbors)
     ld_indices = ld_indices[:, 1:]  # Skip the first column (self)
     ld_distances = ld_distances[:, 1:]  # Skip the first column (self)
