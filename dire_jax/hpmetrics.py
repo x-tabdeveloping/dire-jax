@@ -11,6 +11,7 @@ Auxiliary functions for high-performance benchmarking metrics
 import gc
 import numpy as np
 import jax.numpy as jnp
+import jax
 from jax import jit, lax, random, device_get
 import ot
 from ripser import ripser
@@ -31,26 +32,28 @@ from .hpindex import HPIndex
 
 
 @jit
-def welford_update(carry, new_value):
+def welford_update(carry, new_value, finite_threshold=1e12):
     """
-    Update the running mean and variance calculations with a new value using Welford's algorithm.
+    Update running mean and variance using Welford's algorithm,
+    ignoring values beyond the given finite_threshold.
 
     Parameters
     ----------
-    carry: (tuple) A tuple containing three elements:
-                   - count (int): The count of valid (non-NaN) entries processed so far.
-                   - mean (float): The running mean of the dataset.
-                   - M2 (float): The running sum of squares of differences from the current mean.
-    new_value: (float) The new value to include in the statistics.
+    carry : tuple(int, float, float)
+        (count, mean, M2) — intermediate stats.
+    new_value : float
+        Incoming value to incorporate.
+    finite_threshold : float
+        Max magnitude allowed for inclusion.
 
     Returns
     -------
-    tuple: Updated carry tuple (count, mean, M2) and None as a placeholder for loop compatibility.
+    (carry, None): Updated carry and dummy output for lax.scan.
     """
 
     (count, mean, M2) = carry
-    is_finite = jnp.isfinite(new_value)
-    count = count + is_finite  # Only increment count if new_value is finite
+    is_finite = jnp.isfinite(new_value) & (jnp.abs(new_value) < finite_threshold)
+    count = count + is_finite  # Only increment count if new_value is not too large
     delta = new_value - mean
     mean += delta * is_finite / count
     delta2 = new_value - mean
@@ -107,7 +110,7 @@ def welford(data):
 #
 # Make the kNN graph of given data with k=n_neighbors
 #
-def make_knn_graph(data, n_neighbors):
+def make_knn_graph(data, n_neighbors, batch_size=None):
     """
     Compute the distances to nearest neighbors and their indices in the kNN graph of data.
 
@@ -117,6 +120,9 @@ def make_knn_graph(data, n_neighbors):
         High-dimensional data points.
     n_neighbors : int
         Number of nearest neighbors to find for each point.
+    batch_size : int or None, optional
+        Number of samples to process at once. If None, a suitable value
+        will be automatically determined based on dataset size.
 
     Returns
     -------
@@ -130,16 +136,22 @@ def make_knn_graph(data, n_neighbors):
 
     """
     # Get data size
-    n_samples = data.shape[1]
+    n_samples = data.shape[0]
 
     # Determine appropriate batch size for memory efficiency
-    if n_samples > 131072:
-        batch_size = 8192
-    elif n_samples > 16348:
-        batch_size = 1024
-    else:
-        batch_size = n_samples  # Process all at once for small datasets
-    
+    if batch_size is None:
+        # Process in chunks to reduce peak memory usage
+        if jax.devices()[0].platform == 'tpu':
+            batch_size = min(8192, n_samples)
+        elif jax.devices()[0].platform == 'gpu':
+            batch_size = min(16384, n_samples)
+        else:
+            batch_size = min(8192, n_samples)
+
+    print(f"num samples {n_samples}")
+    print(f"num neighbors {n_neighbors}")
+    print(f"batch size {batch_size}")
+
     # Convert data to the required format for kNN search
     data_np = np.ascontiguousarray(data.astype(np.float32))
 
@@ -180,22 +192,23 @@ def compute_stress(data, layout, n_neighbors, eps=1e-6):
     """
 
     # Computing kNN distances and indices for higher-dimensional data
+    print("compute stress")
     distances, indices = make_knn_graph(data, n_neighbors)
 
     # HPIndex returns L2 distances squared (sic!)
     # Higher-dimensional distances
-    distances = np.sqrt(distances)
+    distances = jnp.sqrt(distances)
 
     # Lower-dimensional distances
-    distances_emb = np.linalg.norm(layout[:, None] - layout[indices], axis=-1)
+    distances_emb = jnp.linalg.norm(layout[:, None] - layout[indices], axis=-1)
 
     # Removing zero distance to self
     distances = distances[:, 1:]
     distances_emb = distances_emb[:, 1:]
 
     # Computing normalized (= scaling adjusted) stress
-    ratios = np.absolute(distances / distances_emb - 1.0)
-    stress_mean, stress_std = welford(jnp.asarray(ratios.ravel()))
+    ratios = jnp.absolute(distances / distances_emb - 1.0)
+    stress_mean, stress_std = welford(ratios.ravel())
 
     # Avoiding division by 0 if stress is small
     stress_normalized = 0.0 if stress_mean < eps else stress_std.item() / stress_mean.item()
@@ -231,11 +244,13 @@ def compute_neighbor_score(data, layout, n_neighbors):
     """
 
     # Computing kNN indices for higher-dimensional data
+    print("compute neighbor score data")
     _, indices_data = make_knn_graph(data, n_neighbors)
     # Removing self from the set of indices
     indices_data = indices_data[:, 1:]
 
     # Computing kNN indices for the layout
+    print("compute neighbor score layout")
     _, indices_embed = make_knn_graph(layout, n_neighbors)
     # Removing self from the set of indices
     indices_embed = indices_embed[:, 1:]
@@ -277,22 +292,22 @@ def compute_local_metrics(data, layout, n_neighbors, memory_efficient=None):
     """
     # Determine if we should use memory-efficient mode for large datasets
     if memory_efficient is None:
-        memory_efficient = data.shape[0] > 50000
-    
+        memory_efficient = data.shape[0] > 32768
+
     # For very large datasets, subsample before computing metrics
-    if memory_efficient and data.shape[0] > 100000:
+    if memory_efficient and data.shape[0] > 131072:
         # Use a reasonable sample size that maintains statistical validity
-        sample_size = 50000
+        sample_size = 32768
         indices = np.random.choice(data.shape[0], sample_size, replace=False)
         data_sample = data[indices]
         layout_sample = layout[indices]
-        
+
         print(f"Using subsampled data ({sample_size} points) for metrics computation")
-        
+
         metrics = {'stress': compute_stress(data_sample, layout_sample, n_neighbors),
                    'neighbor': compute_neighbor_score(data_sample, layout_sample, n_neighbors),
                    'note': f"Metrics computed on {sample_size} randomly sampled points due to large dataset size"}
-        
+
         # Add note about subsampling
 
     else:
@@ -751,7 +766,9 @@ def compute_svm_score(data, layout, labels, subsample_threshold, rng_key, **kwar
     svm_score = np.min([svm_acc_hd/svm_acc_ld, svm_acc_ld/svm_acc_hd])
     svm_score = np.log(svm_score)
 
-    return [svm_acc_hd, svm_acc_ld, svm_score]
+    out = np.array([svm_acc_hd, svm_acc_ld, svm_score]).astype(np.float32)
+
+    return out
 
 
 #
@@ -830,13 +847,15 @@ def compute_knn_score(data, layout, labels, n_neighbors=16, **kwargs):
 
     knn_score = np.log(knn_acc_ld/knn_acc_hd)
 
-    return [knn_acc_hd, knn_acc_ld, knn_score]
+    out = np.array([knn_acc_hd, knn_acc_ld, knn_score]).astype(np.float32)
+
+    return out
 
 
 #
 # Compute quality measures for dimensionality reduction
 #
-def compute_quality_measures(data, layout):
+def compute_quality_measures(data, layout, n_neighbors=None):
     """
     Compute quality measures for assessing the quality of dimensionality reduction.
     
@@ -859,8 +878,9 @@ def compute_quality_measures(data, layout):
         - shepard_correlation: Correlation between pairwise distances in original and embedded spaces
     """
     # Calculate pairwise distances in original space
-    n_samples = min(16348, data.shape[0])  # Limit computation for very large datasets
+    n_samples = min(16384, data.shape[0])  # Limit computation for very large datasets
 
+    # this has to be removed as sampling is already defined ...
     if data.shape[0] > n_samples:
         # Random sampling for large datasets
         indices = np.random.choice(data.shape[0], n_samples, replace=False)
@@ -875,16 +895,19 @@ def compute_quality_measures(data, layout):
     layout_np = np.ascontiguousarray(layout_subset.astype(np.float32))
 
     # Compute all pairwise distances (excluding self-distances)
-    k = min(100, n_samples)  # Number of neighbors to consider
+    if n_neighbors is None:  # Number of neighbors to consider
+        n_neighbors = min(13, int(np.log(n_samples)))
     
     # High-dimensional distances and indices
-    hd_indices, hd_distances = make_knn_graph(data_np, k)
+    print("quality measures data")
+    hd_indices, hd_distances = make_knn_graph(data_np, n_neighbors)
     hd_indices = hd_indices[:, 1:]  # Skip the first column (self)
     hd_distances = hd_distances[:, 1:]  # Skip the first column (self)
     hd_distances = np.sqrt(hd_distances)
 
     # Low-dimensional distances
-    ld_indices, ld_distances = make_knn_graph(layout_np, k)
+    print("quality measures layout")
+    ld_indices, ld_distances = make_knn_graph(layout_np, n_neighbors)
     ld_indices = ld_indices[:, 1:]  # Skip the first column (self)
     ld_distances = ld_distances[:, 1:]  # Skip the first column (self)
     ld_distances = np.sqrt(ld_distances)
@@ -916,14 +939,13 @@ def compute_quality_measures(data, layout):
                     orig_rank = np.sum(orig_dists < dist_to_j)
                     
                     # Penalty based on how far j is in original space
-                    trust_sum += (orig_rank - k)
+                    trust_sum += (orig_rank - n_neighbors)
         
         # Normalize the trustworthiness score
-        n = n_samples
-        normalization = 2.0 / (n * k * (2 * n - 3 * k - 1))
-        trustworthiness = 1 - normalization * trust_sum
+        norm = 2.0 / (n_samples * n_neighbors * (2 * n_samples - 3 * n_neighbors - 1))
+        trust_score = 1 - norm * trust_sum
         
-        return trustworthiness
+        return trust_score
     
     # Calculate continuity (are neighbors in original space also neighbors in embedding?)
     def calculate_continuity():
@@ -952,14 +974,13 @@ def compute_quality_measures(data, layout):
                     embed_rank = np.sum(embed_dists < dist_to_j)
                     
                     # Penalty based on how far j is in the embedding
-                    cont_sum += (embed_rank - k)
+                    cont_sum += (embed_rank - n_neighbors)
         
         # Normalize the continuity score
-        n = n_samples
-        normalization = 2.0 / (n * k * (2 * n - 3 * k - 1))
-        continuity = 1 - normalization * cont_sum
+        norm = 2.0 / (n_samples * n_neighbors * (2 * n_samples - 3 * n_neighbors - 1))
+        cont_score = 1 - norm * cont_sum
         
-        return continuity
+        return cont_score
     
     # Calculate Shepard diagram correlation
     def calculate_shepard_correlation():

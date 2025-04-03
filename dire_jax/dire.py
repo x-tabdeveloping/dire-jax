@@ -114,6 +114,10 @@ class DiRe:
         Ratio of negative to positive samples in the sampling process.
     logger: logger.Logger or `None`
         Logger used for logging informational and warning messages.
+    memm: dictionary or `None'
+        Memory manager: a dictionary with the batch / memory tile size for different
+        hardware architectures. Accepts 'tpu', 'gpu' and 'other' as keys. Values must
+        be positive integers.
 
     Methods
     -------
@@ -139,7 +143,8 @@ class DiRe:
                  sample_size=16,
                  neg_ratio=8,
                  my_logger=None,
-                 verbose=True):
+                 verbose=True,
+                 memm=None):
         """
         Class constructor
         """
@@ -206,6 +211,8 @@ class DiRe:
             """ System logger """
         else:
             self.logger = my_logger
+        #
+        self.memm = {'gpu': 16384,'tpu': 8192, 'other': 8192} if memm is None else memm
 
     #
     # Fitting the distribution kernel with given min_dist and spread
@@ -259,6 +266,8 @@ class DiRe:
 
         self._n_samples = self._data.shape[0]
         self._data_dim = self._data.shape[1]
+
+        self.logger.info(f'Dimension {self._data_dim}, number of samples {self._n_samples}')
 
         self.make_knn_adjacency()
 
@@ -384,13 +393,13 @@ class DiRe:
 
         # Determine appropriate batch size for memory efficiency
         if batch_size is None:
-            # Heuristic: For very large datasets, use smaller batches
-            if self._n_samples > 131072:
-                batch_size = 4096
-            elif self._n_samples > 32768:
-                batch_size = 8192
+            # Process in chunks to reduce peak memory usage
+            if jax.devices()[0].platform == 'tpu':
+                batch_size = min(self.memm['tpu'], self._n_samples)
+            elif jax.devices()[0].platform == 'gpu':
+                batch_size = min(self.memm['gpu'], self._n_samples)
             else:
-                batch_size = self._n_samples  # Process all at once for small datasets
+                batch_size = min(self.memm['other'], self._n_samples)
 
         self.logger.info(f'Using batch size: {batch_size}')
 
@@ -705,7 +714,14 @@ class DiRe:
             # Split computation for memory efficiency if needed
             if large_dataset_mode:
                 # Process in chunks to reduce peak memory usage
-                chunk_size = min(8192, self._n_samples)
+                if jax.devices()[0].platform == 'tpu':
+                    chunk_size = min(self.memm['tpu'], self._n_samples)
+                elif jax.devices()[0].platform == 'gpu':
+                    chunk_size = min(self.memm['gpu'], self._n_samples)
+                else:
+                    chunk_size = min(self.memm['other'], self._n_samples)
+                    # this is actually inefficient, but let's postpone
+
                 all_forces = []
 
                 self.logger.info(f"Using memory tiling with tile size: {chunk_size}")
@@ -715,13 +731,11 @@ class DiRe:
                     chunk_indices = jnp.arange(chunk_start, chunk_end)
 
                     # Process this chunk using our kernelized function
-                    chunk_force = compute_forces_kernel(
+                    chunk_force = self._compute_forces(
                         init_pos_jax,
                         chunk_indices,
                         neighbor_indices_jax[chunk_indices],
                         sample_indices_jax[chunk_indices],
-                        self._a,
-                        self._b,
                         alpha=1.0 - iter_id / num_iterations
                     )
 
@@ -735,13 +749,11 @@ class DiRe:
 
             else:
                 # Process all points at once for smaller datasets
-                net_force = compute_forces_kernel(
+                net_force = self._compute_forces(
                     init_pos_jax,
                     jnp.arange(self._n_samples),
                     neighbor_indices_jax,
                     sample_indices_jax,
-                    self._a,
-                    self._b,
                     alpha=1.0 - iter_id / num_iterations
                 )
 
@@ -795,6 +807,9 @@ class DiRe:
         jax.numpy.ndarray
             Net force vectors for each point
         """
+
+        self.logger.debug(f"[JAX] Computing forces on device: {positions.device}")
+
         # Call the JAX-optimized kernel
         return compute_forces_kernel(
             positions,
@@ -939,8 +954,8 @@ class DiRe:
 # Kernel for force-directed layout
 #
 
-@functools.partial(jax.jit, static_argnums=(4, 5, 6))
-def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_indices, a, b, alpha=1.0):
+@functools.partial(jax.jit, static_argnums=(4, 5))
+def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_indices, a, b, alpha):
     """
     JAX-optimized kernel for computing attractive and repulsive forces.
 
