@@ -43,6 +43,10 @@ from loguru import logger
 # Nearest neighbor search
 from .hpindex import HPIndex
 
+#
+# Double precision support
+#
+jax.config.update("jax_enable_x64", True)
 
 #
 # Main class for Dimensionality Reduction
@@ -121,7 +125,7 @@ class DiRe:
         hardware architectures. Accepts 'tpu', 'gpu' and 'other' as keys. Values must
         be positive integers.
     mpa: bool
-        Mixed Precision Arithmetic flag (True = use MPA, False = always use float32)
+        Mixed Precision Arithmetic flag (True = use MPA, False = always use float64)
 
     Methods
     -------
@@ -396,7 +400,7 @@ class DiRe:
         self.logger.info('make_knn_adjacency ...')
 
         # Ensure data is in the right format for HPIndex
-        self._data = np.ascontiguousarray(self._data.astype(np.float32))
+        self._data = np.ascontiguousarray(self._data.astype(np.float64))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
 
         # Determine appropriate batch size for memory efficiency
@@ -410,22 +414,22 @@ class DiRe:
                 batch_size = min(self.memm['other'], self._n_samples)
 
         self.logger.info(f'Using batch size: {batch_size}')
-        self.logger.debug(f"[KNN] Using precision: {'float16' if self.mpa else 'float32'}")
+        self.logger.debug(f"[KNN] Using precision: {'float32' if self.mpa else 'float64'}")
 
         if self.mpa:
             self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
-                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float16)
+                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float32)
         else:
             self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
-                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float32)
+                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float64)
 
         # Wait until ready
         self._indices_jax.block_until_ready()
         self._distances_jax.block_until_ready()
 
         # Store results in numpy
-        self._indices_np = device_get(self._indices_jax).astype(np.int32)
-        self._distances_np = device_get(self._distances_jax).astype(np.float32)
+        self._indices_np = device_get(self._indices_jax).astype(np.int64)
+        self._distances_np = device_get(self._distances_jax).astype(np.float64)
 
         # Extract nearest neighbor distances (excluding self)
         self._nearest_neighbor_distances = self._distances_np[:, 1:]
@@ -825,9 +829,9 @@ class DiRe:
         """
 
         if self.mpa:
-            positions = positions.astype(jnp.float16)
-        else:
             positions = positions.astype(jnp.float32)
+        else:
+            positions = positions.astype(jnp.float64)
 
         self.logger.debug(f"[FORCE] Computing forces on device: {positions.device}")
         self.logger.debug(f"[FORCE] Using precision: {positions.dtype}")

@@ -8,6 +8,10 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 
+#
+# Double precision support
+#
+jax.config.update("jax_enable_x64", True)
 
 class HPIndex:
 
@@ -20,7 +24,7 @@ class HPIndex:
         pass
 
     @staticmethod
-    def knn_tiled(x, y, k=5, x_tile_size=8192, y_batch_size=1024, dtype=jnp.float32):
+    def knn_tiled(x, y, k=5, x_tile_size=8192, y_batch_size=1024, dtype=jnp.float64):
         """
         Advanced implementation that tiles both database and query points.
         This wrapper handles the dynamic aspects before calling the JIT-compiled
@@ -32,7 +36,7 @@ class HPIndex:
             k: number of nearest neighbors
             x_tile_size: size of database tiles
             y_batch_size: size of query batches
-            dtype: desired floating-point dtype (e.g., jnp.float16 or jnp.float32)
+            dtype: desired floating-point dtype (e.g., jnp.float32 or jnp.float64)
 
         Returns:
             (m, k) array of indices of nearest neighbors
@@ -61,7 +65,7 @@ class HPIndex:
     @staticmethod
     @partial(jax.jit, static_argnums=(2, 3, 4, 5, 6, 7, 8, 9))
     def _knn_tiled_jit(x, y, k, x_tile_size, y_batch_size,
-                       num_y_batches, y_remainder, num_x_tiles, n_x, dtype=jnp.float32):
+                       num_y_batches, y_remainder, num_x_tiles, n_x, dtype=jnp.float64):
         """
         JIT-compiled implementation of tiled KNN with concrete batch parameters.
         """
@@ -69,7 +73,7 @@ class HPIndex:
         _, d_x = x.shape
 
         # Initialize results
-        all_indices = jnp.zeros((n_y, k), dtype=jnp.int32)
+        all_indices = jnp.zeros((n_y, k), dtype=jnp.int64)
         all_distances = jnp.ones((n_y, k), dtype=dtype) * jnp.finfo(dtype).max
 
         # Define the scan function for processing y batches
@@ -81,7 +85,7 @@ class HPIndex:
             y_batch = jax.lax.dynamic_slice(y, (y_start, 0), (y_batch_size, d_y))
 
             # Initialize batch results
-            batch_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int32)
+            batch_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int64)
             batch_distances = jnp.ones((y_batch_size, k), dtype=dtype) * jnp.finfo(dtype).max
 
             # Define the scan function for processing x tiles within a y batch
@@ -165,7 +169,7 @@ class HPIndex:
             padded_y = jnp.pad(remainder_y, ((0, y_batch_size - y_remainder), (0, 0)))
 
             # Initialize remainder results
-            remainder_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int32)
+            remainder_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int64)
             remainder_distances = jnp.ones((y_batch_size, k), dtype=dtype) * jnp.finfo(dtype).max
 
             # Process x tiles for the remainder batch (with same fix as above)
@@ -243,7 +247,7 @@ class HPIndex:
 
 # Globally define the _compute_batch_distances function for reuse
 @partial(jax.jit, static_argnums=(2,))
-def _compute_batch_distances(y_batch, x, dtype=jnp.float32):
+def _compute_batch_distances(y_batch, x, dtype=jnp.float64):
     """
     Compute the squared distances between a batch of query points and all
     database points.
