@@ -402,6 +402,8 @@ class DiRe:
             self._data = np.ascontiguousarray(self._data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
 
+        self.logger.debug(f"[KNN] Using precision: {self._data.dtype}")
+
         # Determine appropriate batch size for memory efficiency
         if batch_size is None:
             # Process in chunks to reduce peak memory usage
@@ -688,6 +690,9 @@ class DiRe:
         n_dirs = self.n_sample_dirs
         neg_ratio = self.neg_ratio
 
+        # Debug initial embedding precision
+        self.logger.debug(f"[LAYOUT] Initial embedding precision: {self._init_embedding.dtype}")
+
         # we shall use force_cpu only as a flag passed to the routine
         # force_cpu = force_cpu or large_dataset_mode and (jax.devices()[0].platform == 'tpu')
 
@@ -828,8 +833,8 @@ class DiRe:
         else:
             positions = positions.astype(jnp.float32)
 
-        self.logger.debug(f"[JAX] Computing forces on device: {positions.device}")
-        self.logger.debug(f"[JAX] Using precision: {positions.dtype}")
+        self.logger.debug(f"[FORCE] Computing forces on device: {positions.device}")
+        self.logger.debug(f"[FORCE] Using precision: {positions.dtype}")
 
         # Call the JAX-optimized kernel
         return compute_forces_kernel(
