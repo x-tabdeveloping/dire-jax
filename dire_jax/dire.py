@@ -396,13 +396,8 @@ class DiRe:
         self.logger.info('make_knn_adjacency ...')
 
         # Ensure data is in the right format for HPIndex
-        if self.mpa:
-            self._data = np.ascontiguousarray(self._data.astype(np.float16))
-        else:
-            self._data = np.ascontiguousarray(self._data.astype(np.float32))
+        self._data = np.ascontiguousarray(self._data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
-
-        self.logger.debug(f"[KNN] Using precision: {self._data.dtype}")
 
         # Determine appropriate batch size for memory efficiency
         if batch_size is None:
@@ -415,6 +410,7 @@ class DiRe:
                 batch_size = min(self.memm['other'], self._n_samples)
 
         self.logger.info(f'Using batch size: {batch_size}')
+        self.logger.debug(f"[KNN] Using precision: {'bfloat16' if self.mpa else 'float32'}")
 
         if self.mpa:
             self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
