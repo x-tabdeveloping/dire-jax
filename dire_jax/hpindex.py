@@ -20,7 +20,7 @@ class HPIndex:
         pass
 
     @staticmethod
-    def knn_tiled(x, y, k=5, x_tile_size=8192, y_batch_size=1024):
+    def knn_tiled(x, y, k=5, x_tile_size=8192, y_batch_size=1024, dtype=jnp.float32):
         """
         Advanced implementation that tiles both database and query points.
         This wrapper handles the dynamic aspects before calling the JIT-compiled
@@ -32,10 +32,14 @@ class HPIndex:
             k: number of nearest neighbors
             x_tile_size: size of database tiles
             y_batch_size: size of query batches
+            dtype: desired floating - point dtype(e.g., jnp.float16 or jnp.float32)
 
         Returns:
             (m, k) array of indices of nearest neighbors
         """
+        x = x.astype(dtype)
+        y = y.astype(dtype)
+
         n_x, _ = x.shape
         n_y, _ = y.shape
 
@@ -55,9 +59,9 @@ class HPIndex:
         )
 
     @staticmethod
-    @partial(jax.jit, static_argnums=(2, 3, 4, 5, 6, 7, 8))
+    @partial(jax.jit, static_argnums=(2, 3, 4, 5, 6, 7, 8, 9))
     def _knn_tiled_jit(x, y, k, x_tile_size, y_batch_size,
-                       num_y_batches, y_remainder, num_x_tiles, n_x):
+                       num_y_batches, y_remainder, num_x_tiles, n_x, dtype=jnp.float32):
         """
         JIT-compiled implementation of tiled KNN with concrete batch parameters.
         """
@@ -65,8 +69,8 @@ class HPIndex:
         _, d_x = x.shape
 
         # Initialize results
-        all_indices = jnp.zeros((n_y, k), dtype=jnp.int32)
-        all_distances = jnp.ones((n_y, k)) * jnp.finfo(jnp.float32).max
+        all_indices = jnp.zeros((n_y, k), dtype=dtype)
+        all_distances = jnp.ones((n_y, k)) * jnp.finfo(dtype).max
 
         # Define the scan function for processing y batches
         def process_y_batch(carry, y_batch_idx):
@@ -78,7 +82,7 @@ class HPIndex:
 
             # Initialize batch results
             batch_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int32)
-            batch_distances = jnp.ones((y_batch_size, k)) * jnp.finfo(jnp.float32).max
+            batch_distances = jnp.ones((y_batch_size, k)) * jnp.finfo(dtype).max
 
             # Define the scan function for processing x tiles within a y batch
             def process_x_tile(carry, x_tile_idx):
@@ -104,7 +108,7 @@ class HPIndex:
                 tile_distances = jnp.where(
                     valid_mask[jnp.newaxis, :],
                     tile_distances,
-                    jnp.ones_like(tile_distances) * jnp.finfo(jnp.float32).max
+                    jnp.ones_like(tile_distances) * jnp.finfo(dtype).max
                 )
 
                 # Adjust indices to account for tile offset
@@ -162,7 +166,7 @@ class HPIndex:
 
             # Initialize remainder results
             remainder_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int32)
-            remainder_distances = jnp.ones((y_batch_size, k)) * jnp.finfo(jnp.float32).max
+            remainder_distances = jnp.ones((y_batch_size, k)) * jnp.finfo(dtype).max
 
             # Process x tiles for the remainder batch (with same fix as above)
             def process_x_tile_remainder(carry, x_tile_idx):
@@ -187,7 +191,7 @@ class HPIndex:
                 tile_distances = jnp.where(
                     x_valid_mask[jnp.newaxis, :],
                     tile_distances,
-                    jnp.ones_like(tile_distances) * jnp.finfo(jnp.float32).max
+                    jnp.ones_like(tile_distances) * jnp.finfo(dtype).max
                 )
 
                 # Adjust indices to account for tile offset
@@ -238,8 +242,8 @@ class HPIndex:
 
 
 # Globally define the _compute_batch_distances function for reuse
-@jax.jit
-def _compute_batch_distances(y_batch, x):
+@partial(jax.jit, static_argnums=(2,))
+def _compute_batch_distances(y_batch, x, dtype=jnp.float32):
     """
     Compute the squared distances between a batch of query points and all
     database points.
@@ -260,6 +264,6 @@ def _compute_batch_distances(y_batch, x):
 
     # Complete squared distance: ||y||² + ||x||² - 2*<y,x>
     dists2 = y_norm[:, jnp.newaxis] + x_norm[jnp.newaxis, :] - 2 * xy
-    dists2 = jnp.clip(dists2, 0, jnp.finfo(jnp.float32).max)
+    dists2 = jnp.clip(dists2, 0, jnp.finfo(dtype).max)
 
     return dists2

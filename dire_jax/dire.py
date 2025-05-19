@@ -114,10 +114,14 @@ class DiRe:
         Ratio of negative to positive samples in the sampling process.
     logger: logger.Logger or `None`
         Logger used for logging informational and warning messages.
+    verbose: bool
+        Logger output flag (True = output logger messages, False = flush to null)
     memm: dictionary or `None'
         Memory manager: a dictionary with the batch / memory tile size for different
         hardware architectures. Accepts 'tpu', 'gpu' and 'other' as keys. Values must
         be positive integers.
+    mpa: bool
+        Mixed Precision Arithmetic flag (True = use MPA, False = always use float32)
 
     Methods
     -------
@@ -144,7 +148,8 @@ class DiRe:
                  neg_ratio=8,
                  my_logger=None,
                  verbose=True,
-                 memm=None):
+                 memm=None,
+                 mpa=True):
         """
         Class constructor
         """
@@ -211,8 +216,11 @@ class DiRe:
             """ System logger """
         else:
             self.logger = my_logger
-        #
-        self.memm = {'gpu': 16384,'tpu': 8192, 'other': 8192} if memm is None else memm
+        # Memory manager to be adjusted for each particular type of hardware
+        # Below are some minimalist settings that may give less than satisfactory performance
+        self.memm = {'gpu': 16384, 'tpu': 8192, 'other': 8192} if memm is None else memm
+        # Using Mixed Precision Arithmetic flag (True = MPA, False = no MPA)
+        self.mpa = mpa
 
     #
     # Fitting the distribution kernel with given min_dist and spread
@@ -388,7 +396,10 @@ class DiRe:
         self.logger.info('make_knn_adjacency ...')
 
         # Ensure data is in the right format for HPIndex
-        self._data = np.ascontiguousarray(self._data.astype(np.float32))
+        if self.mpa:
+            self._data = np.ascontiguousarray(self._data.astype(np.float16))
+        else:
+            self._data = np.ascontiguousarray(self._data.astype(np.float32))
         n_neighbors = self.n_neighbors + 1  # Including the point itself
 
         # Determine appropriate batch size for memory efficiency
@@ -403,16 +414,20 @@ class DiRe:
 
         self.logger.info(f'Using batch size: {batch_size}')
 
-        self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
-            self._data, self._data, n_neighbors, batch_size, batch_size)
+        if self.mpa:
+            self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
+                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float16)
+        else:
+            self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
+                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float32)
 
         # Wait until ready
         self._indices_jax.block_until_ready()
         self._distances_jax.block_until_ready()
 
         # Store results in numpy
-        self._indices_np = device_get(self._indices_jax)
-        self._distances_np = device_get(self._distances_jax)
+        self._indices_np = device_get(self._indices_jax).astype(np.int32)
+        self._distances_np = device_get(self._distances_jax).astype(np.float32)
 
         # Extract nearest neighbor distances (excluding self)
         self._nearest_neighbor_distances = self._distances_np[:, 1:]
@@ -808,7 +823,13 @@ class DiRe:
             Net force vectors for each point
         """
 
+        if self.mpa:
+            positions = positions.astype(jnp.float16)
+        else:
+            positions = positions.astype(jnp.float32)
+
         self.logger.debug(f"[JAX] Computing forces on device: {positions.device}")
+        self.logger.debug(f"[JAX] Using precision: {positions.dtype}")
 
         # Call the JAX-optimized kernel
         return compute_forces_kernel(
@@ -816,9 +837,9 @@ class DiRe:
             chunk_indices,
             neighbor_indices,
             sample_indices,
+            alpha,
             self._a,
             self._b,
-            alpha
         )
 
     #
@@ -954,8 +975,8 @@ class DiRe:
 # Kernel for force-directed layout
 #
 
-@functools.partial(jax.jit, static_argnums=(4, 5))
-def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_indices, a, b, alpha):
+@functools.partial(jit, static_argnums=(6, 7))
+def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_indices, alpha, a, b):
     """
     JAX-optimized kernel for computing attractive and repulsive forces.
 
@@ -969,12 +990,12 @@ def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_ind
         Indices of neighbors for attractive forces
     sample_indices : jax.numpy.ndarray
         Indices of points for repulsive forces
+    alpha : float
+        Cooling factor that scales force magnitude
     a : float
         Attraction parameter
     b : float
         Repulsion parameter
-    alpha : float
-        Cooling factor that scales force magnitude
 
     Returns
     -------
