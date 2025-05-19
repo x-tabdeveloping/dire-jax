@@ -32,7 +32,7 @@ class HPIndex:
             k: number of nearest neighbors
             x_tile_size: size of database tiles
             y_batch_size: size of query batches
-            dtype: desired floating - point dtype(e.g., jnp.float16 or jnp.float32)
+            dtype: desired floating-point dtype (e.g., jnp.float16 or jnp.float32)
 
         Returns:
             (m, k) array of indices of nearest neighbors

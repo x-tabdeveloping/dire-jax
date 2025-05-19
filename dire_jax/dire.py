@@ -418,7 +418,7 @@ class DiRe:
 
         if self.mpa:
             self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
-                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float16)
+                self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.bfloat16)
         else:
             self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
                 self._data, self._data, n_neighbors, batch_size, batch_size, dtype=jnp.float32)
@@ -829,7 +829,7 @@ class DiRe:
         """
 
         if self.mpa:
-            positions = positions.astype(jnp.float16)
+            positions = positions.astype(jnp.bfloat16)
         else:
             positions = positions.astype(jnp.float32)
 
