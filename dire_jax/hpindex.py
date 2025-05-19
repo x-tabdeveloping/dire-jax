@@ -69,8 +69,8 @@ class HPIndex:
         _, d_x = x.shape
 
         # Initialize results
-        all_indices = jnp.zeros((n_y, k), dtype=dtype)
-        all_distances = jnp.ones((n_y, k)) * jnp.finfo(dtype).max
+        all_indices = jnp.zeros((n_y, k), dtype=jnp.int32)
+        all_distances = jnp.ones((n_y, k), dtype=dtype) * jnp.finfo(dtype).max
 
         # Define the scan function for processing y batches
         def process_y_batch(carry, y_batch_idx):
@@ -82,7 +82,7 @@ class HPIndex:
 
             # Initialize batch results
             batch_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int32)
-            batch_distances = jnp.ones((y_batch_size, k)) * jnp.finfo(dtype).max
+            batch_distances = jnp.ones((y_batch_size, k), dtype=dtype) * jnp.finfo(dtype).max
 
             # Define the scan function for processing x tiles within a y batch
             def process_x_tile(carry, x_tile_idx):
@@ -108,7 +108,7 @@ class HPIndex:
                 tile_distances = jnp.where(
                     valid_mask[jnp.newaxis, :],
                     tile_distances,
-                    jnp.ones_like(tile_distances) * jnp.finfo(dtype).max
+                    jnp.ones_like(tile_distances, dtype=dtype) * jnp.finfo(dtype).max
                 )
 
                 # Adjust indices to account for tile offset
@@ -166,7 +166,7 @@ class HPIndex:
 
             # Initialize remainder results
             remainder_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int32)
-            remainder_distances = jnp.ones((y_batch_size, k)) * jnp.finfo(dtype).max
+            remainder_distances = jnp.ones((y_batch_size, k), dtype=dtype) * jnp.finfo(dtype).max
 
             # Process x tiles for the remainder batch (with same fix as above)
             def process_x_tile_remainder(carry, x_tile_idx):
@@ -191,7 +191,7 @@ class HPIndex:
                 tile_distances = jnp.where(
                     x_valid_mask[jnp.newaxis, :],
                     tile_distances,
-                    jnp.ones_like(tile_distances) * jnp.finfo(dtype).max
+                    jnp.ones_like(tile_distances, dtype=dtype) * jnp.finfo(dtype).max
                 )
 
                 # Adjust indices to account for tile offset
@@ -221,12 +221,12 @@ class HPIndex:
                 jnp.arange(num_x_tiles)
             )
 
-            # Extract valid remainder results and update
-            valid_remainder_indices = remainder_indices[:y_remainder]
+            # Extract valid remainder results and update both arrays
+            valid_i = remainder_indices[:y_remainder]
+            valid_d = remainder_distances[:y_remainder]
 
-            indices = jax.lax.dynamic_update_slice(
-                indices, valid_remainder_indices, (y_start, 0)
-            )
+            indices = jax.lax.dynamic_update_slice(indices, valid_i, (y_start, 0))
+            distances = jax.lax.dynamic_update_slice(distances, valid_d, (y_start, 0))
 
             return indices, distances
 
