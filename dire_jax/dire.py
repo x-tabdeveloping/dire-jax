@@ -975,7 +975,7 @@ class DiRe:
 # Kernel for force-directed layout
 #
 
-@functools.partial(jit, static_argnums=(6, 7))
+@functools.partial(jit, static_argnums=(5, 6))
 def compute_forces_kernel(positions, chunk_indices, neighbor_indices, sample_indices, alpha, a, b):
     """
     JAX-optimized kernel for computing attractive and repulsive forces.
