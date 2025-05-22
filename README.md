@@ -61,7 +61,14 @@ The output should look similar to
 
 ### Working paper
 
-Our working paper is available in the repository. Also, check out the Jupyter notebook with benchmarking results.
+Our working paper is available in the repository. [![View PDF](https://img.shields.io/badge/View-PDF-red?logo=adobe)](
+  https://github.com/sashakolpakov/dire-jax/blob/main/working_paper/dire_paper.pdf
+)
+
+ Also, check out the Jupyter notebook with benchmarking results. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](
+  https://colab.research.google.com/github/sashakolpakov/dire-jax/blob/main/tests/dire_benchmarks.ipynb
+)
+
 
 
 ### Benchmarking and utilities
