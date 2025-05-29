@@ -18,7 +18,10 @@ if you need to install the main DiRe class only
 pip install dire-jax[utils]
 ```
 
-if you also need the benchmarking utilities. 
+if you also need the benchmarking utilities.
+
+> **Note**: For GPU or TPU acceleration, JAX needs to be specifically installed with hardware support. See the [JAX documentation](https://github.com/google/jax#installation) for more details on enabling GPU/TPU support.
+
 
 Then, do the imports
 

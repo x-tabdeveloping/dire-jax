@@ -1,0 +1,17 @@
+sphinx>=4.0.0
+sphinx_rtd_theme>=1.0.0
+jax
+numpy
+scipy
+tqdm
+pandas
+plotly
+loguru
+scikit-learn
+# Note: The following are optional dependencies for utils
+# You may comment them out if you don't need utils documentation
+ripser
+persim
+fastdtw
+fast-twed
+pot

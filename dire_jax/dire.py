@@ -302,6 +302,7 @@ class DiRe:
         and then optimizes the layout using force-directed placement.
         
         The transformation process involves:
+
         1. Creating an initial embedding using the specified method
            (random projection, PCA, or spectral embedding)
         2. Optimizing the layout with attractive and repulsive forces
