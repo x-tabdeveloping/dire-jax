@@ -61,6 +61,9 @@ The output should look similar to
 
 ![12 blobs with 100k points in 1k dimensions embedded in dimension 2](images/blobs_layout.png)
 
+### Documentation 
+
+Please refer to the DiRe API [documentation](https://sashakolpakov.github.io/dire-jax/) for more instructions. 
 
 ### Working paper
 
@@ -71,7 +74,6 @@ Our working paper is available in the repository. [![View PDF](https://img.shiel
  Also, check out the Jupyter notebook with benchmarking results. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](
   https://colab.research.google.com/github/sashakolpakov/dire-jax/blob/main/tests/dire_benchmarks.ipynb
 )
-
 
 
 ### Benchmarking and utilities
@@ -87,7 +89,7 @@ persistent homology computations) that may have longer runtimes.
 
 ### Contributing
 
-Create a fork, contribute, and make a merge request. Thanks!
+Please follow the [contibuting guide](https://sashakolpakov.github.io/dire-jax/contributing.html). Thanks!
 
 ### Acknowledgement 
 
