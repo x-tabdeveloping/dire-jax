@@ -1,0 +1,36 @@
+name: Deploy Documentation to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main     
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up Python 
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Build documentation
+        run: |
+          chmod +x ./build_docs.sh
+          ./build_docs.sh
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: docs/build/html
+          keep_files: false    # wipe old files before deploying
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
