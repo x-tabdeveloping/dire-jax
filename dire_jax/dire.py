@@ -67,6 +67,7 @@ class DiRe:
          - 'random' for random projection based on the Johnson-Lindenstrauss lemma;
          - 'spectral' for spectral embedding (with sim_kernel as similarity kernel);
          - 'pca' for PCA embedding (classical, no kernel).
+
          By default, 'random'.
     sim_kernel: (callable)
         A similarity kernel function that transforms a distance metric to a similarity score.
@@ -120,7 +121,7 @@ class DiRe:
         Logger used for logging informational and warning messages.
     verbose: bool
         Logger output flag (True = output logger messages, False = flush to null)
-    memm: dictionary or `None'
+    memm: dictionary or `None`
         Memory manager: a dictionary with the batch / memory tile size for different
         hardware architectures. Accepts 'tpu', 'gpu' and 'other' as keys. Values must
         be positive integers.
