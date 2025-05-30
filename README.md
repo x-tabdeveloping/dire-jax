@@ -1,5 +1,9 @@
 # DiRe - JAX
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
+
 <!-- CI status from GitHub Actions -->
 [![CI](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml) <!-- Docs status from GitHub Actions -->
 [![Docs](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/deploy_docs.yml?branch=main&label=Docs&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/deploy_docs.yml) <!-- Docs health via HTTP ping -->
