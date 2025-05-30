@@ -1,5 +1,15 @@
 # DiRe - JAX
 
+<!-- CI status from GitHub Actions -->
+[![CI](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml) <!-- Docs status from GitHub Actions -->
+[![Docs](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/deploy_docs.yml?branch=main&label=Docs&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/deploy_docs.yml) <!-- Docs health via HTTP ping -->
+[![Docs](https://img.shields.io/website-up-down-green-red/https/sashakolpakov.github.io/dire-jax?label=API%20Documentation)](https://sashakolpakov.github.io/dire-jax/)
+
+
+
+
+
+
 ### A new DImensionality REduction package written in JAX 
 
 We offer a new dimension reduction tool called DiRe - JAX that is benchmarked against the existing approaches: UMAP (original and Rapids.AI versions), and tSNE (Rapids.AI version)
