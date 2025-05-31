@@ -1,9 +1,9 @@
 Metadata-Version: 2.1
 Name: dire-jax
-Version: 0.0.1
+Version: 0.1.0
 Summary: A JAX-based Dimension Reducer
 Home-page: https://github.com/sashakolpakov/dire-jax
-Author: Alexander Kolpakov, Igor Rivin
+Author: Alexander Kolpakov (UATX), Igor Rivin (Temple University)
 Author-email: akolpakov@uaustin.org, rivin@temple.edu
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: Apache Software License
@@ -27,6 +27,21 @@ Requires-Dist: fast-twed; extra == "utils"
 Requires-Dist: pot; extra == "utils"
 
 # DiRe - JAX
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/dire-jax.svg)](https://pypi.org/project/dire-jax/)
+
+
+<!-- CI status from GitHub Actions -->
+[![CI](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml) <!-- Docs status from GitHub Actions -->
+[![Docs](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/deploy_docs.yml?branch=main&label=Docs&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/deploy_docs.yml) <!-- Docs health via HTTP ping -->
+[![Docs](https://img.shields.io/website-up-down-green-red/https/sashakolpakov.github.io/dire-jax?label=API%20Documentation)](https://sashakolpakov.github.io/dire-jax/)
+
+
+
+
+
 
 ### A new DImensionality REduction package written in JAX 
 
@@ -89,6 +104,9 @@ The output should look similar to
 
 ![12 blobs with 100k points in 1k dimensions embedded in dimension 2](images/blobs_layout.png)
 
+### Documentation 
+
+Please refer to the DiRe API [documentation](https://sashakolpakov.github.io/dire-jax/) for more instructions. 
 
 ### Working paper
 
@@ -99,7 +117,6 @@ Our working paper is available in the repository. [![View PDF](https://img.shiel
  Also, check out the Jupyter notebook with benchmarking results. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](
   https://colab.research.google.com/github/sashakolpakov/dire-jax/blob/main/tests/dire_benchmarks.ipynb
 )
-
 
 
 ### Benchmarking and utilities
@@ -115,7 +132,7 @@ persistent homology computations) that may have longer runtimes.
 
 ### Contributing
 
-Create a fork, contribute, and make a merge request. Thanks!
+Please follow the [contibuting guide](https://sashakolpakov.github.io/dire-jax/contributing.html). Thanks!
 
 ### Acknowledgement 
 
