@@ -31,8 +31,8 @@ utils_deps = [
 
 setup(
     name="dire-jax",
-    version="0.0.1",
-    author="Alexander Kolpakov, Igor Rivin",
+    version="0.1.0",
+    author="Alexander Kolpakov (UATX), Igor Rivin (Temple University)",
     author_email="akolpakov@uaustin.org, rivin@temple.edu",
     description="A JAX-based Dimension Reducer",
     long_description=long_description,
