@@ -4,7 +4,11 @@
 
 # Ensure pip packages are installed
 echo "Installing required packages..."
-pip install sphinx sphinx_rtd_theme
+pip install -r docs/requirements.txt
+
+# Install the project and its dependencies
+echo "Installing project dependencies..."
+pip install -e .
 
 # Build the documentation
 echo "Building documentation..."
