@@ -88,7 +88,7 @@
 <span class="c1">#</span>
 <span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="HPIndex"><a class="viewcode-back" href="../../api/dire_jax.hpindex.html#dire_jax.hpindex.HPIndex">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HPIndex</span><span class="p">:</span>
+<div class="viewcode-block" id="HPIndex"><a class="viewcode-back" href="../../api/modules.html#dire_jax.hpindex.HPIndex">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HPIndex</span><span class="p">:</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A kernelized kNN index that uses batching / tiling to efficiently handle</span>
@@ -98,7 +98,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="HPIndex.knn_tiled"><a class="viewcode-back" href="../../api/dire_jax.hpindex.html#dire_jax.hpindex.HPIndex.knn_tiled">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="HPIndex.knn_tiled"><a class="viewcode-back" href="../../api/modules.html#dire_jax.hpindex.HPIndex.knn_tiled">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">knn_tiled</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">x_tile_size</span><span class="o">=</span><span class="mi">8192</span><span class="p">,</span> <span class="n">y_batch_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Advanced implementation that tiles both database and query points.</span>
