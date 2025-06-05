@@ -41,15 +41,19 @@ if you also need the benchmarking utilities.
 Then, do the imports
 
 ```python
+# your imports here ...
+
+# ... DiRe JAX import ...
 from dire_jax import DiRe
-from dire_jax.dire_utils import display_layout
+
+# ... test dataset 
+from sklearn.datasets import make_blobs
+
 ```
 
 and afterwards, for example, try this: 
 
 ```python
-from sklearn.datasets import make_blobs
-
 n_samples  = 100_000
 n_features = 1_000
 n_centers  = 12
