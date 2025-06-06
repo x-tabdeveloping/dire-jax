@@ -86,7 +86,7 @@ Please refer to the DiRe API [documentation](https://sashakolpakov.github.io/dir
 
 ### Working paper
 
-Our working paper is available in the repository. [![View PDF](https://img.shields.io/badge/View-PDF-red?logo=adobe)](
+Our working paper is available on the arXiv. [![View PDF](https://img.shields.io/badge/View-PDF-red?logo=adobe)](
   https://github.com/sashakolpakov/dire-jax/blob/main/working_paper/dire_paper.pdf
 )
 
