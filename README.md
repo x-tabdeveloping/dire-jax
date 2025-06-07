@@ -1,18 +1,31 @@
-# DiRe - JAX
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/dire-jax.svg)](https://pypi.org/project/dire-jax/)
+<!-- Logo + Project title -->
+<p align="center">
+  <img src="images/logo.png" alt="DiRe-JAX logo" width="280" style="margin-bottom:10px;">
+</p>
+<p align="center">
+  <a href="https://opensource.org/licenses/Apache-2.0">
+    <img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
+  </a>
+  <a href="https://www.python.org/downloads/">
+    <img alt="Python 3.8+" src="https://img.shields.io/badge/python-3.8+-blue.svg">
+  </a>
+  <a href="https://pypi.org/project/dire-jax/">
+    <img alt="PyPI" src="https://img.shields.io/pypi/v/dire-jax.svg">
+  </a>
+</p>
 
-
-<!-- CI status from GitHub Actions -->
-[![CI](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml) <!-- Docs status from GitHub Actions -->
-[![Docs](https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/deploy_docs.yml?branch=main&label=Docs&logo=github)](https://github.com/sashakolpakov/dire-jax/actions/workflows/deploy_docs.yml) <!-- Docs health via HTTP ping -->
-[![Docs](https://img.shields.io/website-up-down-green-red/https/sashakolpakov.github.io/dire-jax?label=API%20Documentation)](https://sashakolpakov.github.io/dire-jax/)
-
-
-
-
+<p align="center">
+  <a href="https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml">
+    <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github">
+  </a>
+  <a href="https://github.com/sashakolpakov/dire-jax/actions/workflows/deploy_docs.yml">
+    <img alt="Docs" src="https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/deploy_docs.yml?branch=main&label=Docs&logo=github">
+  </a>
+  <a href="https://sashakolpakov.github.io/dire-jax/">
+    <img alt="Docs Live" src="https://img.shields.io/website-up-down-green-red/https/sashakolpakov.github.io/dire-jax?label=API%20Documentation">
+  </a>
+</p>
 
 
 ### A new DImensionality REduction package written in JAX 
