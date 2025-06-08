@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 # Read the long description from README.md
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 # Comment on utils extra
 print("For benchmarking, metrics and utilities, use the [utils] extra.")
@@ -36,10 +36,10 @@ setup(
     author_email="akolpakov@uaustin.org, rivin@temple.edu",
     description="A JAX-based Dimension Reducer",
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/markdown",  
     url="https://github.com/sashakolpakov/dire-jax",
     packages=find_packages(include=["dire_jax", "dire_jax.*", "tests", "tests.*"]),
-    include_package_data=True,  # Ensures non-Python files (like test data) are included
+    include_package_data=True,  
     package_data={"tests": ["*.py", "*.ipynb"]},
     classifiers=[
         "Programming Language :: Python :: 3",
