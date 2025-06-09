@@ -13,9 +13,14 @@
   <a href="https://pypi.org/project/dire-jax/">
     <img alt="PyPI" src="https://img.shields.io/pypi/v/dire-jax.svg">
   </a>
+<a style="border-width:0" href="https://doi.org/10.21105/joss.08264">
+  <img src="https://joss.theoj.org/papers/10.21105/joss.08264/status.svg" alt="DOI badge" >
+</a>
 </p>
-
 <p align="center">
+  <a href="https://pypi.org/project/dire-jax/">
+    <img src="https://img.shields.io/pypi/dm/dire-jax" alt="PyPI Downloads">
+  </a>
   <a href="https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml">
     <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github">
   </a>
