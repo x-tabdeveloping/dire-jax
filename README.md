@@ -45,7 +45,7 @@ Do either
 pip install dire-jax
 ```
 
-if you need to install the main DiRe class only
+if you need to install the main DiRe class only, or
 
 ```bash
 pip install dire-jax[utils]
