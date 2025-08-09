@@ -18,8 +18,8 @@
 </a>
 </p>
 <p align="center">
-  <a href="https://pypi.org/project/dire-jax/">
-    <img src="https://img.shields.io/pypi/dm/dire-jax" alt="PyPI Downloads">
+  <a href="https://pepy.tech/projects/dire-jax">
+    <img src="https://static.pepy.tech/badge/dire-jax" alt="PyPI Downloads">
   </a>
   <a href="https://github.com/sashakolpakov/dire-jax/actions/workflows/pylint.yml">
     <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sashakolpakov/dire-jax/pylint.yml?branch=main&label=CI&logo=github">
