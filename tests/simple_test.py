@@ -42,13 +42,15 @@ print(f"Layout shape: {layout.shape}")
 # Test memory-efficient version
 print("\nTesting memory-efficient version...")
 reducer = DiRe(
-    n_components=2, n_neighbors=5, init="random", max_iter_layout=3, verbose=True
+    n_components=2,
+    n_neighbors=5,
+    init="random",
+    max_iter_layout=3,
+    verbose=True,
+    batch_size=10,
 )
-
 start_time = time.time()
-reducer.fit(X)
-reducer.make_knn_adjacency(batch_size=10)  # Small batch size for testing
-layout = reducer.transform()
+layout = reducer.fit_transform(X)
 end_time = time.time()
 
 print(f"Memory-efficient completed in {end_time - start_time:.2f} seconds")
