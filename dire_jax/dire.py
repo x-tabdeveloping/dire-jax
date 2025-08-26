@@ -61,7 +61,7 @@ class DiRe(TransformerMixin):
     ----------
     n_components: (int) Embedding dimension, default 2.
     n_neighbors: (int) Number of nearest neighbors to consider for each point, default 16.
-    init_embedding_type: (str)
+    init: (str)
         Method to initialize the embedding; choices are:
          - 'random' for random projection based on the Johnson-Lindenstrauss lemma;
          - 'spectral' for spectral embedding (with sim_kernel as similarity kernel);
@@ -96,12 +96,12 @@ class DiRe(TransformerMixin):
         Target dimensionality of the output space.
     n_neighbors: int
         Number of neighbors to consider in the k-nearest neighbors graph.
-    init_embedding_type: str
+    init: str
         Chosen method for initial embedding.
     sim_kernel: callable
-        Similarity kernel function to be used if 'init_embedding_type' is 'spectral', by default `None`.
+        Similarity kernel function to be used if 'init' is 'spectral', by default `None`.
     pca_kernel: callable
-        Kernel function to be used if 'init_embedding_type' is 'pca', by default `None`.
+        Kernel function to be used if 'init' is 'pca', by default `None`.
     max_iter_layout: int
         Maximum iterations for optimizing the layout.
     min_dist: float
@@ -141,7 +141,7 @@ class DiRe(TransformerMixin):
         self,
         n_components=2,
         n_neighbors=16,
-        init_embedding_type="random",
+        init="random",
         sim_kernel=None,
         pca_kernel=None,
         max_iter_layout=128,
@@ -165,7 +165,7 @@ class DiRe(TransformerMixin):
         """ Embedding dimension """
         self.n_neighbors = n_neighbors
         """ Number of neighbors for kNN computations"""
-        self.init_embedding_type = init_embedding_type
+        self.init = init
         """ Type of the initial embedding (PCA, random, spectral) """
         self.sim_kernel = sim_kernel
         """ Similarity kernel """
@@ -328,14 +328,14 @@ class DiRe(TransformerMixin):
         self.logger.info("transform ...")
 
         # Create initial embedding based on specified initialization method
-        if self.init_embedding_type == "random":
+        if self.init == "random":
             self.do_random_embedding()
-        elif self.init_embedding_type == "spectral":
+        elif self.init == "spectral":
             self.do_spectral_embedding()
-        elif self.init_embedding_type == "pca":
+        elif self.init == "pca":
             self.do_pca_embedding()
         else:
-            error_msg = f'Unsupported embedding method: "{self.init_embedding_type}"'
+            error_msg = f'Unsupported embedding method: "{self.init}"'
             self.logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -893,7 +893,9 @@ class DiRe(TransformerMixin):
 
         # Set default title if not provided
         if title is None:
-            title = f"{self.init_embedding_type.capitalize()} Initialized {self.n_components}D Embedding"
+            title = (
+                f"{self.init.capitalize()} Initialized {self.n_components}D Embedding"
+            )
 
         # Common visualization parameters
         vis_params = {
