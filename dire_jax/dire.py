@@ -329,7 +329,6 @@ class DiRe(TransformerMixin):
         #
         # Store the data and perform fitting (build kNN graph)
         self._data = X
-        self.fit(self._data)
         self.logger.info("transform ...")
 
         # Create initial embedding based on specified initialization method
