@@ -117,6 +117,9 @@ class DiRe(TransformerMixin):
         Number of random directions sampled.
     sample_size: int or 'auto'
         Number of samples per random direction, unless chosen automatically with 'auto'.
+    batch_size : int or None, optional
+        Number of samples to process at once. If None, a suitable value
+        will be automatically determined based on dataset size.
     neg_ratio: int
         Ratio of negative to positive samples in the sampling process.
     logger: logger.Logger or `None`
@@ -153,6 +156,7 @@ class DiRe(TransformerMixin):
         cutoff=42.0,
         n_sample_dirs=8,
         sample_size=16,
+        batch_size=None,
         neg_ratio=8,
         my_logger=None,
         verbose=True,
@@ -218,6 +222,7 @@ class DiRe(TransformerMixin):
         self._adjacency = None
         """ kNN adjacency matrix """
         self.random_state = None
+        self.batch_size = batch_size
         #
         if my_logger is None:
             logger.remove()
@@ -321,7 +326,7 @@ class DiRe(TransformerMixin):
             f"Dimension {self._data_dim}, number of samples {self._n_samples}"
         )
 
-        self.make_knn_adjacency()
+        self.make_knn_adjacency(batch_size=self.batch_size)
 
         self._a, self._b = self.find_ab_params(self.min_dist, self.spread)
         #
