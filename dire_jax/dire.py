@@ -469,12 +469,12 @@ class DiRe(TransformerMixin):
         if self.pca_kernel is not None:
             # Use Kernel PCA for nonlinear dimensionality reduction
             self.logger.info("Using kernelized PCA embedding...")
-            pca = KernelPCA(n_components=self.dimension, kernel=self.pca_kernel)
+            pca = KernelPCA(n_components=self.n_components, kernel=self.pca_kernel)
             self._init_embedding = pca.fit_transform(self._data)
         else:
             # Use standard PCA for linear dimensionality reduction
             self.logger.info("Using standard PCA embedding...")
-            pca = PCA(n_components=self.dimension)
+            pca = PCA(n_components=self.n_components)
             self._init_embedding = pca.fit_transform(self._data)
 
         self.logger.info("do_pca_embedding done ...")
