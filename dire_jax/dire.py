@@ -259,24 +259,55 @@ class DiRe(TransformerMixin):
     # Fitting on data
     #
 
-    def fit(self, data):
+    def fit(self, X: np.ndarray, y=None):
         """
         Fit the model to data: create the kNN graph and fit the probability kernel to force layout parameters.
 
         Parameters
         ----------
-        data: (numpy.ndarray)
+        X: (numpy.ndarray)
             High-dimensional data to fit the model. Shape (n_samples, n_features).
+        y: None
+            Ignored, exists for sklearn compatibility.
 
         Returns
         -------
         self: The DiRe instance fitted to data.
         """
+        self.fit_transform(X, y)
+        return self
 
+    def fit_transform(self, X: np.ndarray, y=None) -> np.ndarray:
+        """
+        Fit the model to data and transform it into a low-dimensional layout.
+
+        This is a convenience method that combines the fitting and transformation
+        steps. It first builds the kNN graph and then creates the optimized
+        layout in a single operation.
+
+        Parameters
+        ----------
+        X: numpy.ndarray
+            High-dimensional data to fit and transform.
+            Shape (n_samples, n_features)
+        y: None
+            Ignored, exists for sklearn API compatibility.
+
+        Returns
+        -------
+        numpy.ndarray
+            The lower-dimensional embedding of the data.
+            Shape (n_samples, dimension)
+
+        Notes
+        -----
+        This method is more memory-efficient than calling fit() and transform()
+        separately, as it avoids storing intermediate results.
+        """
         #
         self.logger.info("fit ...")
         #
-        self._data = data
+        self._data = X
 
         self._n_samples = self._data.shape[0]
         self._data_dim = self._data.shape[1]
@@ -291,37 +322,9 @@ class DiRe(TransformerMixin):
         #
         self.logger.info("fit done ...")
         #
-        return self
-
-    #
-    # Transform fitted data into lower-dimensional representation
-    #
-
-    def transform(self):
-        """
-        Transform the fitted data into a lower-dimensional layout.
-
-        This method applies the selected embedding initialization technique
-        to the data that has already been fitted (creating the kNN graph),
-        and then optimizes the layout using force-directed placement.
-
-        The transformation process involves:
-
-        1. Creating an initial embedding using the specified method
-           (random projection, PCA, or spectral embedding)
-        2. Optimizing the layout with attractive and repulsive forces
-
-        Returns
-        -------
-        numpy.ndarray
-            The lower-dimensional data embedding with shape (n_samples, dimension).
-            Points are arranged to preserve the local structure of the original data.
-
-        Raises
-        ------
-        ValueError
-            If an unsupported embedding initialization method is specified.
-        """
+        # Store the data and perform fitting (build kNN graph)
+        self._data = X
+        self.fit(self._data)
         self.logger.info("transform ...")
 
         # Create initial embedding based on specified initialization method
@@ -342,38 +345,6 @@ class DiRe(TransformerMixin):
         self.logger.info("transform done ...")
 
         return self._layout
-
-    def fit_transform(self, data):
-        """
-        Fit the model to data and transform it into a low-dimensional layout.
-
-        This is a convenience method that combines the fitting and transformation
-        steps. It first builds the kNN graph and then creates the optimized
-        layout in a single operation.
-
-        Parameters
-        ----------
-        data : numpy.ndarray
-            High-dimensional data to fit and transform.
-            Shape (n_samples, n_features)
-
-        Returns
-        -------
-        numpy.ndarray
-            The lower-dimensional embedding of the data.
-            Shape (n_samples, dimension)
-
-        Notes
-        -----
-        This method is more memory-efficient than calling fit() and transform()
-        separately, as it avoids storing intermediate results.
-        """
-        # Store the data and perform fitting (build kNN graph)
-        self._data = data
-        self.fit(self._data)
-
-        # Transform the data (create initial embedding and optimize layout)
-        return self.transform()
 
     #
     # Computing the kNN adjacency matrix (sparse)
