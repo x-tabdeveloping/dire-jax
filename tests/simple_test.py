@@ -24,7 +24,7 @@ X, y = make_blobs(
 print("Creating DiRe reducer...")
 reducer = DiRe(
     n_components=2,
-    n_components=5,
+    n_neighbors=5,
     init="random",  # Faster than PCA
     max_iter_layout=3,  # Very few iterations for testing
     verbose=True,
