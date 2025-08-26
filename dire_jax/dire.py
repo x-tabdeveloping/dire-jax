@@ -18,6 +18,7 @@ import functools
 import gc
 import os
 import sys
+from random import randint
 
 # JAX-related imports
 import jax
@@ -89,6 +90,8 @@ class DiRe(TransformerMixin):
         Custom logger for logging events; if None, a default logger is created, default `None`.
     verbose: (bool)
         Flag to enable verbose output, default `True`.
+    random_state: (int)
+        Random seed to make stochastic computations reproducible.
 
     Attributes
     ----------
@@ -155,6 +158,7 @@ class DiRe(TransformerMixin):
         verbose=True,
         memm=None,
         mpa=True,
+        random_state=None,
     ):
         """
         Class constructor
@@ -213,6 +217,7 @@ class DiRe(TransformerMixin):
         """ Column indices for nearest neighbors """
         self._adjacency = None
         """ kNN adjacency matrix """
+        self.random_state = None
         #
         if my_logger is None:
             logger.remove()
@@ -532,7 +537,10 @@ class DiRe(TransformerMixin):
         self.logger.info("do_random_embedding ...")
 
         # Create a random projection matrix
-        key = random.PRNGKey(13)  # Fixed seed for reproducibility
+        if self.random_state is None:
+            key = random.PRNGKey(randint(0, 1000))
+        else:
+            key = random.PRNGKey(self.random_state)
         rand_basis = random.normal(key, (self.n_components, self._data_dim))
 
         # Move data and projection matrix to device memory
@@ -700,7 +708,10 @@ class DiRe(TransformerMixin):
         init_pos_jax /= init_pos_jax.std(axis=0)  # Normalize variance
 
         # Set random seed for reproducibility
-        key = random.PRNGKey(42)
+        if self.random_state is None:
+            key = random.PRNGKey(randint(0, 1000))
+        else:
+            key = random.PRNGKey(self.random_state)
 
         # Optimization loop
         for iter_id in tqdm(range(num_iterations)):
