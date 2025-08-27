@@ -5,8 +5,10 @@ Tests for the DiRe main class.
 """
 
 import unittest
+
 import numpy as np
 from sklearn.datasets import make_blobs
+
 from dire_jax import DiRe
 
 
@@ -26,11 +28,11 @@ class TestDiRe(unittest.TestCase):
             n_samples=self.n_samples,
             n_features=self.n_features,
             centers=self.n_centers,
-            random_state=self.random_state
+            random_state=self.random_state,
         )
 
         # Standard reducer parameters
-        self.dimension = 2
+        self.n_components = 2
         self.n_neighbors = 5  # Reduced from 8
         self.sample_size = 3  # Reduced from 4
         self.max_iter_layout = 5  # Reduced from 10 for faster tests
@@ -38,13 +40,13 @@ class TestDiRe(unittest.TestCase):
     def test_init(self):
         """Test initialization of DiRe."""
         reducer = DiRe(
-            dimension=self.dimension,
+            n_components=self.n_components,
             n_neighbors=self.n_neighbors,
             sample_size=self.sample_size,
-            max_iter_layout=self.max_iter_layout
+            max_iter_layout=self.max_iter_layout,
         )
 
-        self.assertEqual(reducer.dimension, self.dimension)
+        self.assertEqual(reducer.n_components, self.n_components)
         self.assertEqual(reducer.n_neighbors, self.n_neighbors)
         self.assertEqual(reducer.sample_size, self.sample_size)
         self.assertEqual(reducer.max_iter_layout, self.max_iter_layout)
@@ -52,10 +54,10 @@ class TestDiRe(unittest.TestCase):
     def test_fit_transform(self):
         """Test fit_transform method."""
         reducer = DiRe(
-            dimension=self.dimension,
+            n_components=self.n_components,
             n_neighbors=self.n_neighbors,
             sample_size=self.sample_size,
-            max_iter_layout=self.max_iter_layout
+            max_iter_layout=self.max_iter_layout,
         )
 
         # Apply fit_transform
@@ -63,7 +65,7 @@ class TestDiRe(unittest.TestCase):
 
         # Check output shape
         self.assertEqual(layout.shape[0], self.n_samples)
-        self.assertEqual(layout.shape[1], self.dimension)
+        self.assertEqual(layout.shape[1], self.n_components)
 
         # Check output is finite
         self.assertTrue(np.isfinite(layout).all())
@@ -83,7 +85,7 @@ class TestDiRe(unittest.TestCase):
             # Compute mean distance within cluster
             within_dists = []
             for i, point_i in enumerate(cluster_points):
-                for j in range(i+1, len(cluster_points)):
+                for j in range(i + 1, len(cluster_points)):
                     within_dists.append(np.linalg.norm(point_i - cluster_points[j]))
             mean_within_dist = np.mean(within_dists)
 
@@ -103,15 +105,15 @@ class TestDiRe(unittest.TestCase):
 
     def test_different_embedding_types(self):
         """Test different embedding initialization methods."""
-        embedding_types = ['random', 'pca', 'spectral']
+        embedding_types = ["random", "pca", "spectral"]
 
         for embed_type in embedding_types:
             reducer = DiRe(
-                dimension=self.dimension,
+                n_components=self.n_components,
                 n_neighbors=self.n_neighbors,
-                init_embedding_type=embed_type,
+                init=embed_type,
                 sample_size=self.sample_size,
-                max_iter_layout=self.max_iter_layout
+                max_iter_layout=self.max_iter_layout,
             )
 
             # Apply fit_transform
@@ -119,11 +121,11 @@ class TestDiRe(unittest.TestCase):
 
             # Check output shape
             self.assertEqual(layout.shape[0], self.n_samples)
-            self.assertEqual(layout.shape[1], self.dimension)
+            self.assertEqual(layout.shape[1], self.n_components)
 
             # Check output is finite
             self.assertTrue(np.isfinite(layout).all())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

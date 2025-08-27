@@ -38,29 +38,27 @@ from dire_jax import DiRe
 
 # Initialize with memory-efficient options
 reducer = DiRe(
-    dimension=2,
+    n_components=2,
     n_neighbors=16,
-    init_embedding_type='pca',
-    max_iter_layout=32
+    init='pca',
+    max_iter_layout=32,
+    batch_size=5000
 )
 
-# Use batch processing for kNN computation
-reducer.make_knn_adjacency(batch_size=5000)
-
-# Use memory-efficient layout optimization
-reducer.fit(data)
-layout = reducer.transform()  # This will use memory-efficient mode for large datasets
+# Use fit_transform with automatic memory-efficient mode for large datasets
+layout = reducer.fit_transform(data)
 ```
 
-Or combine everything in a single call with memory-efficient options:
+Or configure batch processing explicitly:
 
 ```python
 # Create a reducer for large datasets
 reducer = DiRe(
-    dimension=2,
+    n_components=2,
     n_neighbors=16,
-    init_embedding_type='pca',
-    max_iter_layout=32
+    init='pca',
+    max_iter_layout=32,
+    batch_size=5000
 )
 
 # Apply fit_transform with memory-efficient options

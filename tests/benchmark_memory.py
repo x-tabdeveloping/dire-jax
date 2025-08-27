@@ -5,30 +5,31 @@ Simple benchmark to test memory efficiency improvements.
 
 import gc
 import time
+
 from sklearn.datasets import make_blobs
+
 from dire_jax import DiRe
 
 
 def run_benchmark(n_samples, n_features, n_centers, use_memory_efficient=False):
     """Run benchmark with specified parameters."""
     # Generate synthetic dataset
-    print(f"Generating dataset with {n_samples} samples, {n_features} features, {n_centers} centers...")
+    print(
+        f"Generating dataset with {n_samples} samples, {n_features} features, {n_centers} centers..."
+    )
 
     X, _ = make_blobs(
-        n_samples=n_samples,
-        n_features=n_features,
-        centers=n_centers,
-        random_state=42
+        n_samples=n_samples, n_features=n_features, centers=n_centers, random_state=42
     )
 
     # Create reducer
     print(f"Creating DiRe reducer (memory_efficient={use_memory_efficient})...")
     reducer = DiRe(
-        dimension=2,
-        n_neighbors=8,    # Reduced from 16
-        init_embedding_type='pca',
+        n_components=2,
+        n_neighbors=8,  # Reduced from 16
+        init="pca",
         max_iter_layout=3,  # Reduced from 10 for faster testing
-        verbose=True
+        verbose=True,
     )
 
     # Time fit_transform process
@@ -67,13 +68,17 @@ def main():
     standard_time = run_benchmark(200, 20, 3, use_memory_efficient=False)
     print("\n")
     efficient_time = run_benchmark(200, 20, 3, use_memory_efficient=True)
-    print(f"\nSmall dataset - Standard: {standard_time:.2f}s, Efficient: {efficient_time:.2f}s")
+    print(
+        f"\nSmall dataset - Standard: {standard_time:.2f}s, Efficient: {efficient_time:.2f}s"
+    )
 
     print("\n\n==== Medium Dataset Benchmark ====")
     standard_time = run_benchmark(500, 50, 5, use_memory_efficient=False)
     print("\n")
     efficient_time = run_benchmark(500, 50, 5, use_memory_efficient=True)
-    print(f"\nMedium dataset - Standard: {standard_time:.2f}s, Efficient: {efficient_time:.2f}s")
+    print(
+        f"\nMedium dataset - Standard: {standard_time:.2f}s, Efficient: {efficient_time:.2f}s"
+    )
 
     # Larger dataset only with memory efficient mode
     print("\n\n==== Larger Dataset Benchmark (Efficient only) ====")

@@ -1,2 +1,0 @@
-dire_jax
-tests
