@@ -126,6 +126,171 @@ class TestDiRe(unittest.TestCase):
             # Check output is finite
             self.assertTrue(np.isfinite(layout).all())
 
+    def test_l1_metric(self):
+        """Test DiRe with L1 (Manhattan) distance metric."""
+        reducer = DiRe(
+            n_components=self.n_components,
+            n_neighbors=self.n_neighbors,
+            metric="l1",
+            sample_size=self.sample_size,
+            max_iter_layout=self.max_iter_layout,
+        )
+
+        # Apply fit_transform
+        layout = reducer.fit_transform(self.X)
+
+        # Check output shape
+        self.assertEqual(layout.shape[0], self.n_samples)
+        self.assertEqual(layout.shape[1], self.n_components)
+
+        # Check output is finite
+        self.assertTrue(np.isfinite(layout).all())
+
+        # Verify metric was set correctly
+        self.assertEqual(reducer.metric, "l1")
+
+    def test_lp_metric_p2(self):
+        """Test DiRe with Lp distance metric where p=2 (squared L2)."""
+        reducer = DiRe(
+            n_components=self.n_components,
+            n_neighbors=self.n_neighbors,
+            metric="lp",
+            p=2,
+            sample_size=self.sample_size,
+            max_iter_layout=self.max_iter_layout,
+        )
+
+        # Apply fit_transform
+        layout = reducer.fit_transform(self.X)
+
+        # Check output shape
+        self.assertEqual(layout.shape[0], self.n_samples)
+        self.assertEqual(layout.shape[1], self.n_components)
+
+        # Check output is finite
+        self.assertTrue(np.isfinite(layout).all())
+
+        # Verify metric was set correctly
+        self.assertEqual(reducer.metric, "lp")
+        self.assertEqual(reducer.metric_kwargs["p"], 2)
+
+    def test_cosine_metric(self):
+        """Test DiRe with cosine distance metric."""
+        reducer = DiRe(
+            n_components=self.n_components,
+            n_neighbors=self.n_neighbors,
+            metric="cosine",
+            sample_size=self.sample_size,
+            max_iter_layout=self.max_iter_layout,
+        )
+
+        # Apply fit_transform
+        layout = reducer.fit_transform(self.X)
+
+        # Check output shape
+        self.assertEqual(layout.shape[0], self.n_samples)
+        self.assertEqual(layout.shape[1], self.n_components)
+
+        # Check output is finite
+        self.assertTrue(np.isfinite(layout).all())
+
+        # Verify metric was set correctly
+        self.assertEqual(reducer.metric, "cosine")
+
+    def test_linf_metric(self):
+        """Test DiRe with L-infinity (Chebyshev/max) distance metric."""
+        reducer = DiRe(
+            n_components=self.n_components,
+            n_neighbors=self.n_neighbors,
+            metric="linf",
+            sample_size=self.sample_size,
+            max_iter_layout=self.max_iter_layout,
+        )
+
+        # Apply fit_transform
+        layout = reducer.fit_transform(self.X)
+
+        # Check output shape
+        self.assertEqual(layout.shape[0], self.n_samples)
+        self.assertEqual(layout.shape[1], self.n_components)
+
+        # Check output is finite
+        self.assertTrue(np.isfinite(layout).all())
+
+        # Verify metric was set correctly
+        self.assertEqual(reducer.metric, "linf")
+
+    def test_all_metrics_consistency(self):
+        """Test that all metrics produce valid embeddings and maintain relative cluster structure."""
+        metrics_configs = [
+            {"metric": "l1"},
+            {"metric": "lp", "p": 2},
+            {"metric": "linf"},
+            {"metric": "cosine"},
+        ]
+        
+        layouts = {}
+        
+        # Test each metric
+        for config in metrics_configs:
+            metric_name = config["metric"]
+            if "p" in config:
+                metric_name += f"_p{config['p']}"
+                
+            reducer = DiRe(
+                n_components=self.n_components,
+                n_neighbors=self.n_neighbors,
+                sample_size=self.sample_size,
+                max_iter_layout=self.max_iter_layout,
+                **config,
+            )
+
+            # Apply fit_transform
+            layout = reducer.fit_transform(self.X)
+            layouts[metric_name] = layout
+
+            # Basic shape and validity checks
+            self.assertEqual(layout.shape[0], self.n_samples)
+            self.assertEqual(layout.shape[1], self.n_components)
+            self.assertTrue(np.isfinite(layout).all())
+
+            # Check that different clusters maintain some separation
+            # This is a basic test that the embedding preserves some structure
+            for cluster_id in range(self.n_centers):
+                cluster_mask = self.y == cluster_id
+                
+                # Skip if there's only 1 point in the cluster
+                if np.sum(cluster_mask) <= 1:
+                    continue
+
+                # Get layout for points in this cluster
+                cluster_points = layout[cluster_mask]
+                
+                # The standard deviation within cluster should be reasonable
+                # (not zero, but not too large either)
+                cluster_std = np.std(cluster_points, axis=0)
+                self.assertTrue(np.all(cluster_std > 1e-6))  # Not collapsed
+                self.assertTrue(np.all(cluster_std < 10))    # Not too spread
+
+        # Verify all metrics produced different results (they should, given different distance measures)
+        metric_names = list(layouts.keys())
+        for i in range(len(metric_names)):
+            for j in range(i + 1, len(metric_names)):
+                layout1 = layouts[metric_names[i]]
+                layout2 = layouts[metric_names[j]]
+                
+                # Layouts should be different (not identical)
+                # We normalize them first to account for different scales/orientations
+                layout1_norm = layout1 - layout1.mean(axis=0)
+                layout1_norm = layout1_norm / (layout1_norm.std(axis=0) + 1e-8)
+                layout2_norm = layout2 - layout2.mean(axis=0) 
+                layout2_norm = layout2_norm / (layout2_norm.std(axis=0) + 1e-8)
+                
+                # Check that they're not too similar (allowing for some numerical precision issues)
+                diff = np.linalg.norm(layout1_norm - layout2_norm)
+                self.assertGreater(diff, 0.1, 
+                    f"Layouts for {metric_names[i]} and {metric_names[j]} are too similar")
+
 
 if __name__ == "__main__":
     unittest.main()
