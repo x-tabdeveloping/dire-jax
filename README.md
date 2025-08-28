@@ -80,7 +80,7 @@ features_blobs, labels_blobs = make_blobs(n_samples=n_samples, n_features=n_feat
 reducer_blobs = DiRe(n_components=2,
                      n_neighbors=16,
                      init='pca',
-                     metric='lp',  # Distance metric: 'lp', 'l1', 'linf', 'cosine'
+                     metric='lp',  # Distance metric: 'lp', 'l1', 'linf', 'cosine', or custom callable
                      p=2,          # For lp metric, p=2 gives squared L2 distance
                      max_iter_layout=32,
                      min_dist=1e-4,
@@ -108,6 +108,7 @@ DiRe supports multiple distance metrics for k-nearest neighbor computation:
 - `'l1'`: Manhattan/L1 distance
 - `'linf'`: Chebyshev/L-infinity distance
 - `'cosine'`: Cosine distance
+- Custom callable: User-defined metric functions for specialized distance measures
 
 ```python
 # L1 Manhattan distance

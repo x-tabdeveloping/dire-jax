@@ -7,6 +7,7 @@ A JAX-based implementation for efficient k-nearest neighbors.
 from functools import partial
 import jax
 import jax.numpy as jnp
+from typing import Union, Callable
 
 #
 # Double precision support
@@ -18,7 +19,7 @@ class HPIndex:
     """
     A high-performance kNN index that uses batching/tiling to efficiently handle
     large datasets with limited memory usage. Supports multiple distance metrics
-    including Lp norms, cosine distance, and more.
+    including Lp norms, cosine distance, and custom user-defined metrics.
     
     The index uses JAX for GPU acceleration and memory-efficient tiled computation
     to handle datasets that don't fit in memory.
@@ -28,6 +29,7 @@ class HPIndex:
     - 'l1': Manhattan/L1 distance  
     - 'linf': Chebyshev/L-infinity distance
     - 'cosine': Cosine distance
+    - Custom callable: User-defined metric function with signature my_metric(y_batch, x, **kwargs)
     
     Examples:
         # Default L2 squared distance
@@ -41,13 +43,21 @@ class HPIndex:
         
         # Cosine distance
         indices, distances = HPIndex.knn_tiled(database, queries, k=10, metric='cosine')
+        
+        # Custom metric with kwargs
+        def my_metric(y_batch, x, scale=1.0):
+            diff = y_batch[:, jnp.newaxis, :] - x[jnp.newaxis, :, :]
+            return scale * jnp.sum(diff**2, axis=2)
+        
+        indices, distances = HPIndex.knn_tiled(database, queries, k=10, 
+                                               metric=my_metric, scale=2.0)
     """
 
     def __init__(self):
         pass
 
     @staticmethod
-    def knn_tiled(x, y, k=5, metric='lp', x_tile_size=8192, y_batch_size=1024, dtype=jnp.float64, **metric_kwargs):
+    def knn_tiled(x, y, k=5, metric: Union[str, Callable]='lp', x_tile_size=8192, y_batch_size=1024, dtype=jnp.float64, **metric_kwargs):
         """
         Find k-nearest neighbors using tiled computation for memory efficiency.
         
@@ -64,6 +74,7 @@ class HPIndex:
                 - 'l1': Manhattan/L1 distance
                 - 'linf': Chebyshev/L-infinity distance  
                 - 'cosine': Cosine distance
+                - callable: custom metric function with signature my_metric(y_batch, x, **kwargs)
             x_tile_size: number of database points to process in each tile (default 8192)
             y_batch_size: number of query points to process in each batch (default 1024)
             dtype: floating-point precision (jnp.float32 or jnp.float64)
@@ -91,6 +102,15 @@ class HPIndex:
             # Use cosine distance  
             indices, distances = HPIndex.knn_tiled(database, queries, k=5, metric='cosine')
             
+            # Use custom metric
+            def weighted_euclidean(y_batch, x, weights):
+                diff = y_batch[:, jnp.newaxis, :] - x[jnp.newaxis, :, :]
+                return jnp.sum(weights * diff**2, axis=2)
+            
+            weights = jnp.array([1.0, 2.0, 0.5, ...])  # feature weights
+            indices, distances = HPIndex.knn_tiled(database, queries, k=5, 
+                                                   metric=weighted_euclidean, weights=weights)
+            
         Note:
             For very large datasets, adjust x_tile_size and y_batch_size to fit
             your available memory. Smaller values use less memory but may be slower.
@@ -110,8 +130,16 @@ class HPIndex:
         y_remainder = n_y % y_batch_size
         num_x_tiles = (n_x + x_tile_size - 1) // x_tile_size
 
-        # Handle lp metric separately due to its parameter
-        if metric == 'lp':
+        # Handle different metric types
+        if callable(metric):
+            # Handle custom callable metric - create a partial function with kwargs bound
+            metric_with_kwargs = partial(metric, **metric_kwargs) if metric_kwargs else metric
+            indices, distances = HPIndex._knn_tiled_jit_custom(
+                x, y, k, x_tile_size, y_batch_size,
+                num_y_batches, y_remainder, num_x_tiles, n_x, metric_with_kwargs, dtype
+            )
+            return indices, distances
+        elif metric == 'lp':
             p = metric_kwargs.get('p', 2)
             if p < 2:
                 raise ValueError("For lp metric, p must be >= 2")
@@ -121,7 +149,7 @@ class HPIndex:
             )
             return indices, distances
         else:
-            # Call the JIT-compiled implementation with concrete values
+            # Call the JIT-compiled implementation with concrete values for builtin metrics
             indices, distances = HPIndex._knn_tiled_jit(
                 x, y, k, x_tile_size, y_batch_size,
                 num_y_batches, y_remainder, num_x_tiles, n_x, metric, dtype
@@ -544,6 +572,213 @@ class HPIndex:
 
         return all_indices, all_distances
 
+    @staticmethod
+    def _knn_tiled_jit_custom(x, y, k, x_tile_size, y_batch_size,
+                              num_y_batches, y_remainder, num_x_tiles, n_x, metric_fn, dtype=jnp.float64):
+        """
+        Implementation of tiled KNN search using custom metric function.
+        
+        This function handles user-defined custom metrics. The custom metric is JIT-compiled
+        within this function for efficiency.
+        
+        Args:
+            x: (n_x, d) database points array
+            y: (n_y, d) query points array  
+            k: number of nearest neighbors to find
+            x_tile_size: size of each database tile
+            y_batch_size: size of each query batch
+            num_y_batches: number of full query batches
+            y_remainder: number of remaining query points after full batches
+            num_x_tiles: number of database tiles
+            n_x: total number of database points
+            metric_fn: custom metric function (will be JIT-compiled internally)
+            dtype: floating-point data type
+
+        Returns:
+            tuple: (indices, distances) where:
+                - indices: (n_y, k) array of neighbor indices
+                - distances: (n_y, k) array of distances from custom metric
+                
+        Note:
+            This function is used internally by knn_tiled() for custom callable metrics
+            and should not be called directly. Use HPIndex.knn_tiled() instead.
+        """
+        # JIT compile the custom metric function
+        jit_metric_fn = jax.jit(metric_fn)
+        n_y, d_y = y.shape
+        _, d_x = x.shape
+
+        # Initialize results
+        all_indices = jnp.zeros((n_y, k), dtype=jnp.int64)
+        all_distances = jnp.ones((n_y, k), dtype=dtype) * jnp.finfo(dtype).max
+
+        # Define the scan function for processing y batches
+        def process_y_batch(carry, y_batch_idx):
+            curr_indices, curr_distances = carry
+
+            # Get current batch of query points
+            y_start = y_batch_idx * y_batch_size
+            y_batch = jax.lax.dynamic_slice(y, (y_start, 0), (y_batch_size, d_y))
+
+            # Initialize batch results
+            batch_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int64)
+            batch_distances = jnp.ones((y_batch_size, k), dtype=dtype) * jnp.finfo(dtype).max
+
+            # Define the scan function for processing x tiles within a y batch
+            def process_x_tile(carry, x_tile_idx):
+                batch_idx, batch_dist = carry
+
+                # Get current tile of database points - use fixed size slices
+                x_start = x_tile_idx * x_tile_size
+
+                # Use a fixed size for the slice and then mask invalid values
+                x_tile = jax.lax.dynamic_slice(
+                    x, (x_start, 0), (x_tile_size, d_x)
+                )
+
+                # Calculate how many elements are actually valid
+                x_tile_actual_size = jnp.minimum(x_tile_size, n_x - x_start)
+
+                # Compute distances between y_batch and x_tile using custom metric
+                tile_distances = jit_metric_fn(y_batch, x_tile)
+
+                # Mask out invalid indices (those beyond the actual data)
+                valid_mask = jnp.arange(x_tile_size) < x_tile_actual_size
+                tile_distances = jnp.where(
+                    valid_mask[jnp.newaxis, :],
+                    tile_distances,
+                    jnp.ones_like(tile_distances, dtype=dtype) * jnp.finfo(dtype).max
+                )
+
+                # Adjust indices to account for tile offset
+                # Make sure indices are within bounds
+                tile_indices = jnp.minimum(
+                    jnp.arange(x_tile_size) + x_start,
+                    n_x - 1  # Ensure indices don't go beyond n_x
+                )
+                tile_indices = jnp.broadcast_to(tile_indices, tile_distances.shape)
+
+                # Merge current tile results with previous results
+                combined_distances = jnp.concatenate([batch_dist, tile_distances], axis=1)
+                combined_indices = jnp.concatenate([batch_idx, tile_indices], axis=1)
+
+                # Sort and get top k
+                top_k_idx = jnp.argsort(combined_distances)[:, :k]
+
+                # Gather top k distances and indices
+                new_batch_dist = jnp.take_along_axis(combined_distances, top_k_idx, axis=1)
+                new_batch_idx = jnp.take_along_axis(combined_indices, top_k_idx, axis=1)
+
+                return (new_batch_idx, new_batch_dist), None
+
+            # Process all x tiles for this y batch
+            (batch_indices, batch_distances), _ = jax.lax.scan(
+                process_x_tile,
+                (batch_indices, batch_distances),
+                jnp.arange(num_x_tiles)
+            )
+
+            # Update overall results for this batch
+            curr_indices = jax.lax.dynamic_update_slice(
+                curr_indices, batch_indices, (y_start, 0)
+            )
+            curr_distances = jax.lax.dynamic_update_slice(
+                curr_distances, batch_distances, (y_start, 0)
+            )
+
+            return (curr_indices, curr_distances), None
+
+        # Process all full y batches
+        (all_indices, all_distances), _ = jax.lax.scan(
+            process_y_batch,
+            (all_indices, all_distances),
+            jnp.arange(num_y_batches)
+        )
+
+        # Handle y remainder with similar changes if needed
+        def handle_y_remainder(indices, distances):
+            y_start = num_y_batches * y_batch_size
+
+            # Get and pad remainder batch
+            remainder_y = jax.lax.dynamic_slice(y, (y_start, 0), (y_remainder, d_y))
+            padded_y = jnp.pad(remainder_y, ((0, y_batch_size - y_remainder), (0, 0)))
+
+            # Initialize remainder results
+            remainder_indices = jnp.zeros((y_batch_size, k), dtype=jnp.int64)
+            remainder_distances = jnp.ones((y_batch_size, k), dtype=dtype) * jnp.finfo(dtype).max
+
+            # Process x tiles for the remainder batch
+            def process_x_tile_remainder(carry, x_tile_idx):
+                batch_idx, batch_dist = carry
+
+                # Get current tile of database points - use fixed size slices
+                x_start = x_tile_idx * x_tile_size
+
+                # Use fixed size for the slice
+                x_tile = jax.lax.dynamic_slice(
+                    x, (x_start, 0), (x_tile_size, d_x)
+                )
+
+                # Calculate actual valid size
+                x_tile_actual_size = jnp.minimum(x_tile_size, n_x - x_start)
+
+                # Compute distances between padded_y and x_tile using custom metric
+                tile_distances = jit_metric_fn(padded_y, x_tile)
+
+                # Mask out invalid indices (both for y padding and x overflow)
+                x_valid_mask = jnp.arange(x_tile_size) < x_tile_actual_size
+                tile_distances = jnp.where(
+                    x_valid_mask[jnp.newaxis, :],
+                    tile_distances,
+                    jnp.ones_like(tile_distances, dtype=dtype) * jnp.finfo(dtype).max
+                )
+
+                # Adjust indices to account for tile offset
+                tile_indices = jnp.minimum(
+                    jnp.arange(x_tile_size) + x_start,
+                    n_x - 1  # Ensure indices don't go beyond n_x
+                )
+                tile_indices = jnp.broadcast_to(tile_indices, tile_distances.shape)
+
+                # Merge current tile results with previous results
+                combined_distances = jnp.concatenate([batch_dist, tile_distances], axis=1)
+                combined_indices = jnp.concatenate([batch_idx, tile_indices], axis=1)
+
+                # Sort and get top k
+                top_k_idx = jnp.argsort(combined_distances)[:, :k]
+
+                # Gather top k distances and indices
+                new_batch_dist = jnp.take_along_axis(combined_distances, top_k_idx, axis=1)
+                new_batch_idx = jnp.take_along_axis(combined_indices, top_k_idx, axis=1)
+
+                return (new_batch_idx, new_batch_dist), None
+
+            # Process all x tiles for the remainder batch
+            (remainder_indices, remainder_distances), _ = jax.lax.scan(
+                process_x_tile_remainder,
+                (remainder_indices, remainder_distances),
+                jnp.arange(num_x_tiles)
+            )
+
+            # Extract valid remainder results and update both arrays
+            valid_i = remainder_indices[:y_remainder]
+            valid_d = remainder_distances[:y_remainder]
+
+            indices = jax.lax.dynamic_update_slice(indices, valid_i, (y_start, 0))
+            distances = jax.lax.dynamic_update_slice(distances, valid_d, (y_start, 0))
+
+            return indices, distances
+
+        # Conditionally handle remainder to avoid issues with remainder=0
+        all_indices, all_distances = jax.lax.cond(
+            y_remainder > 0,
+            lambda args: handle_y_remainder(*args),
+            lambda args: args,
+            (all_indices, all_distances)
+        )
+
+        return all_indices, all_distances
+
 
 # Built-in distance functions
 
@@ -693,7 +928,8 @@ def _compute_batch_distances(y_batch, x, dtype=jnp.float64, metric='lp'):
     Note:
         This function does not handle the 'lp' metric directly - that is handled
         by _knn_tiled_jit_lp() which calls _compute_batch_distances_lp() directly
-        with the p parameter.
+        with the p parameter. Custom callable metrics are handled separately
+        by _knn_tiled_jit_custom() and do not use this dispatcher function.
     """
     if metric not in BUILTIN_METRICS:
         raise ValueError(f"Unknown metric '{metric}'. Available metrics: {list(BUILTIN_METRICS.keys())}")
