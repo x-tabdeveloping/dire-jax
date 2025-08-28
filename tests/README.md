@@ -41,6 +41,8 @@ reducer = DiRe(
     n_components=2,
     n_neighbors=16,
     init='pca',
+    metric='lp',     # Distance metric: 'lp', 'l1', 'linf', 'cosine'
+    p=2,             # For lp metric, p=2 gives squared L2 distance
     max_iter_layout=32,
     batch_size=5000
 )
@@ -57,6 +59,8 @@ reducer = DiRe(
     n_components=2,
     n_neighbors=16,
     init='pca',
+    metric='lp',     # Distance metric: 'lp', 'l1', 'linf', 'cosine'  
+    p=2,             # For lp metric, p=2 gives squared L2 distance
     max_iter_layout=32,
     batch_size=5000
 )

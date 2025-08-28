@@ -69,6 +69,13 @@ class DiRe(TransformerMixin):
          - 'pca' for PCA embedding (classical, no kernel).
 
          By default, 'random'.
+    metric: (str) Distance metric for k-nearest neighbor computation. Options:
+        - 'lp': p-th power of Lp distance (default p=2 for squared L2)
+        - 'l1': Manhattan/L1 distance
+        - 'linf': Chebyshev/L-infinity distance
+        - 'cosine': Cosine distance
+        
+        By default, 'lp'.
     sim_kernel: (callable)
         A similarity kernel function that transforms a distance metric to a similarity score.
         The function should have the form `lambda distance: float -> similarity: float`; default `None`.
@@ -92,6 +99,8 @@ class DiRe(TransformerMixin):
         Flag to enable verbose output, default `True`.
     random_state: (int)
         Random seed to make stochastic computations reproducible.
+    **metric_kwargs: Additional keyword arguments for specific distance metrics.
+        For 'lp' metric: p (int) - power for Lp norm (default 2, must be >= 2).
 
     Attributes
     ----------
@@ -101,6 +110,10 @@ class DiRe(TransformerMixin):
         Number of neighbors to consider in the k-nearest neighbors graph.
     init: str
         Chosen method for initial embedding.
+    metric: str
+        Distance metric used for k-nearest neighbor computations.
+    metric_kwargs: dict
+        Additional parameters for the distance metric (e.g., p for 'lp' metric).
     sim_kernel: callable
         Similarity kernel function to be used if 'init' is 'spectral', by default `None`.
     pca_kernel: callable
@@ -148,6 +161,7 @@ class DiRe(TransformerMixin):
         n_components=2,
         n_neighbors=16,
         init="random",
+        metric="lp",
         sim_kernel=None,
         pca_kernel=None,
         max_iter_layout=128,
@@ -163,6 +177,7 @@ class DiRe(TransformerMixin):
         memm=None,
         mpa=True,
         random_state=None,
+        **metric_kwargs,
     ):
         """
         Class constructor
@@ -175,6 +190,10 @@ class DiRe(TransformerMixin):
         """ Number of neighbors for kNN computations"""
         self.init = init
         """ Type of the initial embedding (PCA, random, spectral) """
+        self.metric = metric
+        """ Distance metric for kNN computations """
+        self.metric_kwargs = metric_kwargs
+        """ Additional parameters for distance metrics """
         self.sim_kernel = sim_kernel
         """ Similarity kernel """
         self.pca_kernel = pca_kernel
@@ -408,18 +427,22 @@ class DiRe(TransformerMixin):
                 self._data,
                 self._data,
                 n_neighbors,
-                batch_size,
-                batch_size,
+                metric=self.metric,
+                x_tile_size=batch_size,
+                y_batch_size=batch_size,
                 dtype=jnp.float32,
+                **self.metric_kwargs,
             )
         else:
             self._indices_jax, self._distances_jax = HPIndex.knn_tiled(
                 self._data,
                 self._data,
                 n_neighbors,
-                batch_size,
-                batch_size,
+                metric=self.metric,
+                x_tile_size=batch_size,
+                y_batch_size=batch_size,
                 dtype=jnp.float64,
+                **self.metric_kwargs,
             )
 
         # Wait until ready

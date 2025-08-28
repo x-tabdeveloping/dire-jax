@@ -80,6 +80,8 @@ features_blobs, labels_blobs = make_blobs(n_samples=n_samples, n_features=n_feat
 reducer_blobs = DiRe(n_components=2,
                      n_neighbors=16,
                      init='pca',
+                     metric='lp',  # Distance metric: 'lp', 'l1', 'linf', 'cosine'
+                     p=2,          # For lp metric, p=2 gives squared L2 distance
                      max_iter_layout=32,
                      min_dist=1e-4,
                      spread=1.0,
@@ -97,6 +99,29 @@ reducer_blobs.visualize(labels=labels_blobs, point_size=4)
 The output should look similar to
 
 ![12 blobs with 100k points in 1k dimensions embedded in dimension 2](images/blobs_layout.png)
+
+### Distance Metrics
+
+DiRe supports multiple distance metrics for k-nearest neighbor computation:
+
+- `'lp'`: p-th power of Lp distance (requires `p` parameter, must be ≥ 2)
+- `'l1'`: Manhattan/L1 distance
+- `'linf'`: Chebyshev/L-infinity distance
+- `'cosine'`: Cosine distance
+
+```python
+# L1 Manhattan distance
+reducer_l1 = DiRe(metric='l1')
+
+# L2 squared distance (default when p=2)
+reducer_l2 = DiRe(metric='lp', p=2)
+
+# L-infinity Chebyshev distance
+reducer_linf = DiRe(metric='linf')
+
+# Cosine distance
+reducer_cosine = DiRe(metric='cosine')
+```
 
 ### Documentation 
 
