@@ -104,11 +104,11 @@ The output should look similar to
 
 DiRe supports multiple distance metrics for k-nearest neighbor computation:
 
-- `'lp'`: p-th power of Lp distance (requires `p` parameter, must be ≥ 2)
-- `'l1'`: Manhattan/L1 distance
-- `'linf'`: Chebyshev/L-infinity distance
-- `'cosine'`: Cosine distance
-- Custom callable: User-defined metric functions for specialized distance measures
+- `'lp'`: $p$-th power of $L_p$ distance (requires `p` parameter, must be $\geq 2$)
+- `'l1'`: Manhattan, or $L_1$, distance
+- `'linf'`: Chebyshev, or $L_\infty$, distance
+- `'cosine'`: Cosine similarity distance
+- `custom callable`: User-defined metric function (more details in the [documentation](https://sashakolpakov.github.io/dire-jax/) ) 
 
 ```python
 # L1 Manhattan distance
