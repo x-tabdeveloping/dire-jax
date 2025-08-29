@@ -41,7 +41,7 @@ reducer = DiRe(
     n_components=2,
     n_neighbors=16,
     init='pca',
-    metric='lp',     # Distance metric: 'lp', 'l1', 'linf', 'cosine'
+    metric='lp',     # Distance metric: 'lp', 'l1', 'linf', 'cosine', or custom callable
     p=2,             # For lp metric, p=2 gives squared L2 distance
     max_iter_layout=32,
     batch_size=5000
@@ -59,7 +59,7 @@ reducer = DiRe(
     n_components=2,
     n_neighbors=16,
     init='pca',
-    metric='lp',     # Distance metric: 'lp', 'l1', 'linf', 'cosine'  
+    metric='lp',     # Distance metric: 'lp', 'l1', 'linf', 'cosine', or custom callable  
     p=2,             # For lp metric, p=2 gives squared L2 distance
     max_iter_layout=32,
     batch_size=5000
@@ -67,6 +67,22 @@ reducer = DiRe(
 
 # Apply fit_transform with memory-efficient options
 layout = reducer.fit_transform(data)
+
+# Custom distance metrics can also be used:
+import jax.numpy as jnp
+
+def weighted_euclidean(y_batch, x, weights):
+    """Custom weighted Euclidean distance."""
+    diff = y_batch[:, jnp.newaxis, :] - x[jnp.newaxis, :, :]
+    return jnp.sum(weights * diff**2, axis=2)
+
+# Use custom metric
+feature_weights = jnp.ones(data.shape[1])  # Example weights
+reducer_custom = DiRe(
+    n_components=2,
+    metric=weighted_euclidean,
+    weights=feature_weights
+)
 
 # Compute metrics with memory-efficient option
 from dire_jax.hpmetrics import compute_local_metrics
