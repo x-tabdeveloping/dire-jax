@@ -1,13 +1,19 @@
 # dire.py
 
 """
-Provides the main class for dimensionality reduction.
+Provides the main JAX-based class for dimensionality reduction.
 
 The DiRe (Dimensionality Reduction) class implements a modern approach to
 dimensionality reduction, leveraging JAX for efficient computation. It uses 
 force-directed layout techniques combined with k-nearest neighbor graph 
 construction to generate meaningful low-dimensional embeddings of 
 high-dimensional data.
+
+This JAX implementation features:
+- Fully vectorized force computation (no chunking for optimal performance)
+- JIT compilation for mathematical operations
+- Optimized for small to medium datasets (<50K points)
+- Excellent CPU performance and research-friendly design
 """
 
 #
@@ -221,7 +227,7 @@ class DiRe(TransformerMixin):
         """ Column indices for nearest neighbors """
         self._adjacency = None
         """ kNN adjacency matrix """
-        self.random_state = None
+        self.random_state = random_state
         self.batch_size = batch_size
         #
         if my_logger is None:
@@ -545,14 +551,20 @@ class DiRe(TransformerMixin):
             key = random.PRNGKey(randint(0, 1000))
         else:
             key = random.PRNGKey(self.random_state)
-        rand_basis = random.normal(key, (self.n_components, self._data_dim))
+        
+        # Use appropriate dtype for MPA
+        compute_dtype = jnp.float32 if self.mpa else jnp.float64
+        rand_basis = random.normal(key, (self.n_components, self._data_dim), dtype=compute_dtype)
 
-        # Move data and projection matrix to device memory
-        data_matrix = device_put(self._data)
+        # Move data and projection matrix to device memory with consistent dtype
+        data_matrix = device_put(self._data.astype(compute_dtype))
         rand_basis = device_put(rand_basis)
 
-        # Project data onto random basis
-        self._init_embedding = data_matrix @ rand_basis.T
+        # Project data onto random basis with explicit precision control
+        self._init_embedding = jnp.dot(
+            data_matrix, rand_basis.T, 
+            precision=jax.lax.Precision.DEFAULT if self.mpa else jax.lax.Precision.HIGHEST
+        )
 
         self.logger.info("do_random_embedding done ...")
 
@@ -604,9 +616,10 @@ class DiRe(TransformerMixin):
         sampled_indices_list = []
         arr_len = len(arr)
 
-        # Get random unit vectors for projections
+        # Get random unit vectors for projections with appropriate dtype
         key, subkey = random.split(key)
-        direction_vectors = rand_directions(subkey, self.n_components, n_dirs)
+        compute_dtype = jnp.float32 if hasattr(self, 'mpa') and self.mpa else jnp.float64
+        direction_vectors = rand_directions(subkey, self.n_components, n_dirs, compute_dtype)
 
         # For each direction, sample points based on projections
         for vec in direction_vectors:
@@ -668,12 +681,13 @@ class DiRe(TransformerMixin):
         """
         self.logger.info("do_layout ...")
 
-        # Setup parameters
-        cutoff = jnp.array([self.cutoff])
-        num_iterations = self.max_iter_layout
+        # Setup parameters with appropriate dtype
+        compute_dtype = jnp.float32 if self.mpa else jnp.float64
 
         # Handle automatic batch size calculation if needed
         sample_size = self.sample_size
+        num_iterations = self.max_iter_layout
+
         if sample_size == "auto":
             # Scale batch size based on dataset size and neighborhood size
             sample_size = int(self.n_neighbors * np.log(self._n_samples))
@@ -695,21 +709,23 @@ class DiRe(TransformerMixin):
             f"[LAYOUT] Initial embedding precision: {self._init_embedding.dtype}"
         )
 
-        # we shall use force_cpu only as a flag passed to the routine
-        # force_cpu = force_cpu or large_dataset_mode and (jax.devices()[0].platform == 'tpu')
-
-        # Initialize and normalize positions
+        # Initialize and normalize positions with appropriate dtype
         if force_cpu:
             self.logger.info("Forcing computations on CPU")
             cpu_device = jax.devices("cpu")[0]
-            init_pos_jax = device_put(self._init_embedding, device=cpu_device)
+            init_pos_jax = device_put(self._init_embedding.astype(compute_dtype), device=cpu_device)
             neighbor_indices_jax = device_put(self._indices_np, device=cpu_device)
         else:
-            init_pos_jax = device_put(self._init_embedding)
+            init_pos_jax = device_put(self._init_embedding.astype(compute_dtype))
             neighbor_indices_jax = device_put(self._indices_jax)
 
-        init_pos_jax -= init_pos_jax.mean(axis=0)  # Center positions
-        init_pos_jax /= init_pos_jax.std(axis=0)  # Normalize variance
+        # Use dtype-consistent operations for normalization
+        mean_pos = init_pos_jax.mean(axis=0, keepdims=True)
+        init_pos_jax = init_pos_jax - mean_pos  # Center positions
+        std_pos = init_pos_jax.std(axis=0, keepdims=True)
+        # Avoid division by zero with appropriate epsilon for dtype
+        eps = jnp.array(1e-7 if self.mpa else 1e-15, dtype=compute_dtype)
+        init_pos_jax = init_pos_jax / jnp.maximum(std_pos, eps)  # Normalize variance
 
         # Set random seed for reproducibility
         if self.random_state is None:
@@ -778,8 +794,9 @@ class DiRe(TransformerMixin):
                     alpha=1.0 - iter_id / num_iterations,
                 )
 
-            # Clip forces to prevent extreme movements
-            net_force = jnp.clip(net_force, -cutoff, cutoff)
+            # Clip forces to prevent extreme movements (with dtype-aware cutoff)
+            cutoff_typed = jnp.array(self.cutoff, dtype=compute_dtype)
+            net_force = jnp.clip(net_force, -cutoff_typed, cutoff_typed)
 
             # Update positions
             init_pos_jax += net_force
@@ -790,9 +807,12 @@ class DiRe(TransformerMixin):
             # Clean up resources
             gc.collect()
 
-        # Normalize final layout
-        init_pos_jax -= init_pos_jax.mean(axis=0)
-        init_pos_jax /= init_pos_jax.std(axis=0)
+        # Normalize final layout with dtype consistency
+        mean_final = init_pos_jax.mean(axis=0, keepdims=True)
+        init_pos_jax = init_pos_jax - mean_final
+        std_final = init_pos_jax.std(axis=0, keepdims=True)
+        eps = jnp.array(1e-7 if self.mpa else 1e-15, dtype=compute_dtype)
+        init_pos_jax = init_pos_jax / jnp.maximum(std_final, eps)
 
         # Store final layout
         self._layout = np.asarray(init_pos_jax)
@@ -831,15 +851,10 @@ class DiRe(TransformerMixin):
             Net force vectors for each point
         """
 
-        if self.mpa:
-            positions = positions.astype(jnp.float32)
-        else:
-            positions = positions.astype(jnp.float64)
-
         self.logger.debug(f"[FORCE] Computing forces on device: {positions.device}")
-        self.logger.debug(f"[FORCE] Using precision: {positions.dtype}")
+        self.logger.debug(f"[FORCE] Using MPA: {self.mpa}")
 
-        # Call the JAX-optimized kernel
+        # Call the JAX-optimized kernel with MPA flag
         return compute_forces_kernel(
             positions,
             chunk_indices,
@@ -848,6 +863,7 @@ class DiRe(TransformerMixin):
             alpha,
             self._a,
             self._b,
+            use_float32=self.mpa,
         )
 
     #
@@ -984,84 +1000,94 @@ class DiRe(TransformerMixin):
 #
 
 
-@functools.partial(jit, static_argnums=(5, 6))
+@functools.partial(jit, static_argnums=(5, 6, 7))
 def compute_forces_kernel(
-    positions, chunk_indices, neighbor_indices, sample_indices, alpha, a, b
+    positions, chunk_indices, neighbor_indices, sample_indices, alpha, a, b, use_float32=True
 ):
     """
-    JAX-optimized kernel for computing attractive and repulsive forces.
+    Fully vectorized JAX kernel for computing forces - no chunking.
+    
+    Let JAX handle large tensors efficiently rather than fighting with recompilation.
+    Modern GPUs can easily handle the memory requirements for most datasets.
 
     Parameters
     ----------
     positions : jax.numpy.ndarray
-        Current point positions
+        Current point positions (N, D)
     chunk_indices : jax.numpy.ndarray
-        Current batch indices
+        Indices being processed (N,)
     neighbor_indices : jax.numpy.ndarray
-        Indices of neighbors for attractive forces
+        Indices of neighbors for attractive forces (N, k)
     sample_indices : jax.numpy.ndarray
-        Indices of points for repulsive forces
+        Indices of points for repulsive forces (N, n_neg)
     alpha : float
         Cooling factor that scales force magnitude
     a : float
         Attraction parameter
     b : float
         Repulsion parameter
+    use_float32 : bool
+        Whether to use float32 for computations (MPA optimization)
 
     Returns
     -------
     jax.numpy.ndarray
-        Net force vectors for each point
+        Net force vectors for each point (N, D)
     """
+    
+    # Convert to appropriate dtype at the beginning
+    compute_dtype = jnp.float32 if use_float32 else jnp.float64
+    positions = positions.astype(compute_dtype)
+    alpha = jnp.array(alpha, dtype=compute_dtype)
+    a = jnp.array(a, dtype=compute_dtype)
+    b = jnp.array(b, dtype=compute_dtype)
+    
+    # Get current positions for processing
+    current_positions = positions[chunk_indices]  # (N, D)
+    forces = jnp.zeros_like(current_positions, dtype=compute_dtype)
 
-    # ===== Attraction Forces =====
-    def compute_attraction(chunk_idx, neighbors_idx):
-        # Get positions of current point and its neighbors
-        point_pos = positions[chunk_idx]
-        neighbor_pos = positions[neighbors_idx]
+    # ===== ATTRACTION FORCES (k-NN only) =====
+    # Get neighbor positions efficiently using advanced indexing
+    neighbor_positions = positions[neighbor_indices]  # (N, k, D)
+    
+    # Broadcast current positions for vectorized computation
+    current_pos_expanded = current_positions[:, None, :]  # (N, 1, D)
+    
+    # Compute differences and distances
+    att_diff = neighbor_positions - current_pos_expanded  # (N, k, D)
+    # Use more stable distance computation for MPA
+    att_dist_sq = jnp.sum(att_diff * att_diff, axis=2, keepdims=True)  # (N, k, 1)
+    att_dist = jnp.sqrt(att_dist_sq + jnp.array(1e-10, dtype=compute_dtype))  # (N, k, 1)
+    
+    # Attraction coefficient: 1 / (1 + a * (1/d)^(2b))
+    # Use more numerically stable computation
+    inv_dist = jnp.array(1.0, dtype=compute_dtype) / att_dist
+    att_coeff = jnp.array(1.0, dtype=compute_dtype) / (jnp.array(1.0, dtype=compute_dtype) + a * jnp.power(inv_dist, 2.0 * b))  # (N, k, 1)
+    
+    # Compute attraction forces and sum over neighbors
+    att_forces = jnp.sum(att_coeff * att_diff / att_dist, axis=1)  # (N, D)
+    forces += att_forces
 
-        # Compute position differences and distances
-        diff = neighbor_pos - point_pos
-        dist = jnp.linalg.norm(diff, axis=1, keepdims=True)
+    # ===== REPULSION FORCES (Random Sampling) =====
+    if sample_indices.size > 0:
+        # Get negative sample positions
+        sample_positions = positions[sample_indices]  # (N, n_neg, D)
+        
+        # Compute differences and distances
+        rep_diff = sample_positions - current_pos_expanded  # (N, n_neg, D)
+        # Use more stable distance computation for MPA
+        rep_dist_sq = jnp.sum(rep_diff * rep_diff, axis=2, keepdims=True)  # (N, n_neg, 1)
+        rep_dist = jnp.sqrt(rep_dist_sq + jnp.array(1e-10, dtype=compute_dtype))  # (N, n_neg, 1)
+        
+        # Repulsion coefficient: -1 / (1 + a * d^(2b))
+        rep_coeff = jnp.array(-1.0, dtype=compute_dtype) / (jnp.array(1.0, dtype=compute_dtype) + a * jnp.power(rep_dist, 2.0 * b))  # (N, n_neg, 1)
+        
+        # Compute repulsion forces and sum over negative samples
+        rep_forces = jnp.sum(rep_coeff * rep_diff / rep_dist, axis=1)  # (N, D)
+        forces += rep_forces
 
-        # Avoid division by zero
-        mask = dist > 0
-        direction = jnp.where(mask, diff / dist, 0.0)
-
-        # Compute attraction-repulsion coefficients
-        grad_coeff = jnp.where(
-            mask, 1.0 * jax_coeff_att(dist, a, b) + 1.0 * jax_coeff_rep(dist, a, b), 0.0
-        )
-
-        # Sum forces from all neighbors
-        return jnp.sum(grad_coeff * direction, axis=0)
-
-    # ===== Repulsion Forces =====
-    def compute_repulsion(chunk_idx, sample_idx):
-        # Get positions of current point and sampled points
-        point_pos = positions[chunk_idx]
-        sample_pos = positions[sample_idx]
-
-        # Compute position differences and distances
-        diff = sample_pos - point_pos
-        dist = jnp.linalg.norm(diff, axis=1, keepdims=True)
-
-        # Avoid division by zero
-        mask = dist > 0
-        direction = jnp.where(mask, diff / dist, 0.0)
-
-        # Compute repulsion coefficients
-        grad_coeff = jnp.where(mask, jax_coeff_rep(dist, a, b), 0.0)
-
-        # Sum forces from all sampled points
-        return jnp.sum(grad_coeff * direction, axis=0)
-
-    # Vectorize force computation across all points
-    attraction_forces = vmap(compute_attraction)(chunk_indices, neighbor_indices)
-    repulsion_forces = vmap(compute_repulsion)(chunk_indices, sample_indices)
-
-    # Combine forces with cooling factor
-    return alpha * (attraction_forces + repulsion_forces)
+    # Apply cooling factor
+    return alpha * forces
 
 
 #
@@ -1106,8 +1132,8 @@ def jax_coeff_rep(dist, a, b):
     return -1.0 * distribution_kernel(dist, a, b)
 
 
-@functools.partial(jit, static_argnums=(1, 2))
-def rand_directions(key, dim=2, num=100):
+@functools.partial(jit, static_argnums=(1, 2, 3))
+def rand_directions(key, dim=2, num=100, dtype=jnp.float64):
     """
     Sample unit vectors in random directions.
 
@@ -1119,15 +1145,19 @@ def rand_directions(key, dim=2, num=100):
         Dimensionality of the vectors
     num : int
         Number of random directions to sample
+    dtype : jnp.dtype
+        Data type for computation
 
     Returns
     -------
     jax.numpy.ndarray
         Array of shape (num, dim) containing unit vectors
     """
-    points = random.normal(key, (num, dim))
-    norms = jnp.sqrt(jnp.sum(points * points, axis=-1))
-    return points / norms[:, None]
+    points = random.normal(key, (num, dim), dtype=dtype)
+    norms = jnp.sqrt(jnp.sum(points * points, axis=-1, keepdims=True))
+    # Add small epsilon to avoid division by zero
+    eps = jnp.array(1e-7 if dtype == jnp.float32 else 1e-15, dtype=dtype)
+    return points / jnp.maximum(norms, eps)
 
 
 @functools.partial(jit, static_argnums=(1,))

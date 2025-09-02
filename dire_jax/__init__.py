@@ -23,4 +23,7 @@ if not HAS_UTILS:
         UserWarning
     )
 
-__all__ = ['DiRe', 'dire_utils'] if HAS_UTILS else ['DiRe']
+# Build __all__ based on available modules
+__all__ = ['DiRe']
+if HAS_UTILS:
+    __all__.append('dire_utils')

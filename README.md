@@ -33,43 +33,35 @@
 </p>
 
 
-### A new DImensionality REduction package written in JAX 
+### A high-performance DImensionality REduction package with JAX
 
-We offer a new dimension reduction tool called DiRe - JAX that is benchmarked against the existing approaches: UMAP (original and Rapids.AI versions), and tSNE (Rapids.AI version)
+DiRe offers fast dimensionality reduction preserving the global dataset structure, with benchmarks showing competitive performance against UMAP and t-SNE. Built with JAX for efficient computation on CPUs and GPUs.
 
 ### Quick start
 
-Do either
-
+**Basic installation (JAX backend only):**
 ```bash    
 pip install dire-jax
 ```
 
-if you need to install the main DiRe class only, or
-
+**With utilities for benchmarking:**
 ```bash
 pip install dire-jax[utils]
 ```
 
-if you also need the benchmarking utilities.
+**Complete installation with utilities:**
+```bash
+pip install dire-jax[all]
+```
 
 > **Note**: For GPU or TPU acceleration, JAX needs to be specifically installed with hardware support. See the [JAX documentation](https://github.com/google/jax#installation) for more details on enabling GPU/TPU support.
 
 
-Then, do the imports
-
+**Example usage:**
 ```python
-# your imports here ...
-
-# ... DiRe JAX import ...
 from dire_jax import DiRe
-
-# ... test dataset 
 from sklearn.datasets import make_blobs
-
-```
-
-and afterwards, for example, try this: 
+``` 
 
 ```python
 n_samples  = 100_000
@@ -77,9 +69,9 @@ n_features = 1_000
 n_centers  = 12
 features_blobs, labels_blobs = make_blobs(n_samples=n_samples, n_features=n_features, centers=n_centers, random_state=42)
 
-reducer_blobs = DiRe(dimension=2,
+reducer_blobs = DiRe(n_components=2,
                      n_neighbors=16,
-                     init_embedding_type='pca',
+                     init='pca',
                      max_iter_layout=32,
                      min_dist=1e-4,
                      spread=1.0,
@@ -100,27 +92,35 @@ The output should look similar to
 
 ### Documentation 
 
-Please refer to the DiRe API [documentation](https://sashakolpakov.github.io/dire-jax/) for more instructions. 
+Please refer to the DiRe API [documentation](https://sashakolpakov.github.io/dire-jax/) for more instructions.
+
+**Project documentation structure:**
+- `/docs/` - API documentation and architecture details
+- `/benchmarking/` - Performance benchmarks and scaling results  
+- `/examples/` - Example usage and demos
+- `/tests/` - Test suite and benchmarking notebooks 
 
 ### Working paper
 
 Our working paper is available on the arXiv. [![Paper](https://img.shields.io/badge/arXiv-read%20PDF-b31b1b.svg)](https://arxiv.org/abs/2503.03156)
 
  Also, check out the Jupyter notebook with benchmarking results. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](
-  https://colab.research.google.com/github/sashakolpakov/dire-jax/blob/main/tests/dire_benchmarks.ipynb
+  https://colab.research.google.com/github/sashakolpakov/dire-jax/blob/main/benchmarking/dire_benchmarks.ipynb
 )
 
 
+### Performance Characteristics
+
+DiRe-JAX is optimized for small-medium datasets (<50K points) with excellent CPU performance and GPU acceleration via JAX. Features fully vectorized computation with JIT compilation for optimal performance.
+
 ### Benchmarking and utilities
 
-In order to run the Jupyter notebook in the ./tests folder, you need to install some extras:
+For benchmarking utilities and quality metrics:
 ```bash
 pip install dire-jax[utils]
 ```
 
-This installation will give you access to the utilities (metrics and benchmarking routines) that are 
-specifically implemented to be used together with DiRe. However, some of them rely on external packages (especially for
-persistent homology computations) that may have longer runtimes. 
+This provides access to dimensionality reduction quality metrics and benchmarking routines. Some utilities use external packages for persistent homology computations which may increase runtime. 
 
 ### Contributing
 

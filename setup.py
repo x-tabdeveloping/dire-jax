@@ -50,5 +50,6 @@ setup(
     install_requires=core_deps,
     extras_require={
         "utils": utils_deps,
+        "all": utils_deps,
     },
 )

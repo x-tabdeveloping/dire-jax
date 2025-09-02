@@ -2,16 +2,16 @@
 
 This directory contains the Sphinx documentation for the DiRe-JAX package.
 
-## Important Information about JAX GPU/TPU Support
+## JAX Implementation
 
-For GPU or TPU acceleration, JAX needs to be specifically installed with hardware support. The default JAX installation through pip doesn't include GPU/TPU support.
+DiRe-JAX is a pure JAX implementation optimized for:
+- Excellent CPU performance with JIT compilation
+- GPU acceleration when JAX is installed with CUDA support
+- TPU support for cloud-based computation
 
-To enable GPU/TPU acceleration:
-
-* For **GPU** support, follow the [JAX GPU installation instructions](https://github.com/google/jax#installation)
-* For **TPU** support, follow the [JAX TPU installation instructions](https://github.com/google/jax#tpu-tpu-vm)
-
-Installing JAX with hardware acceleration can significantly improve the performance of DiRe-JAX, especially for larger datasets.
+### Hardware Acceleration
+- For GPU acceleration, JAX needs specific installation: [JAX GPU instructions](https://github.com/google/jax#installation)
+- For TPU support: [JAX TPU instructions](https://github.com/google/jax#tpu-tpu-vm)
 
 ## Building the Documentation
 
